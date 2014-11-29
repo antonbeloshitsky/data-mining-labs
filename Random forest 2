@@ -1,0 +1,79 @@
+Enter file contents herelibrary("quantmod")
+library("rattle")
+library("rpart")
+library("rpart.plot")
+
+
+
+startDate = as.Date("2012-01-01")
+#Начало рассматриваемого промежутка
+
+endDate = as.Date("2014-01-01") 
+#Конец промежутка
+
+getSymbols("BAC", src = "yahoo", from = startDate, to = endDate) 
+#Получаем данные стоимости акций Bank of America
+
+RSI3<-RSI(Op(BAC), n= 3) 
+#Рассчитываем 3-х дневный индекс относительной силы (RSI) по цене открытия
+
+EMA5<-EMA(Op(BAC),n=5) 
+#Рассчитываем 5-дневную экспоненциальную скользящую среднюю (EMA)
+EMAcross<- Op(BAC)-EMA5 
+#Давайте посмотрим на разницу между ценой открытия и нашей 5-ти дневной EMA
+
+MACD<-MACD(Op(BAC),fast = 12, slow = 26, signal = 9) 
+#Рассчитываем MACD(Схождение/расхождение скользящих средних) со стандартными параметрами
+
+MACDsignal<-MACD[,2] 
+#Используем только сигнальную линию в качестве индикатора 
+
+SMI<-SMI(Op(BAC),n=13,slow=25,fast=2,signal=9) 
+#Стохастический осциллятор со стандартными параметрами
+
+SMI<-SMI[,1] 
+#Используем только осциллятор в качестве индикатора
+
+PriceChange<- Cl(BAC) - Op(BAC) 
+#Рассчитываем разницу между ценой закрытия и открытия
+
+Class<-ifelse(PriceChange>0,"UP","DOWN") 
+#Переменная которую мы хотим предсказать.
+
+
+DataSet<-data.frame(RSI3,EMAcross,MACDsignal,SMI,Class) 
+#Создаем наш data set
+colnames(DataSet)<-c("RSI3","EMAcross","MACDsignal","Stochastic","Class") 
+#Задаем имена колонкам
+DataSet<-DataSet[-c(1:33),] 
+#Избавляемся от данных, на которых происходит первоначальное формирование индикаторов
+
+TrainingSet<-DataSet[1:312,] 
+#Используем 2/3 наших данных для построения дерева
+
+TestSet<-DataSet[313:469,]
+#И оставляем 1/3 данных для тестирования нашей стратегии
+
+DecisionTree<-rpart(Class~RSI3+EMAcross+MACDsignal+Stochastic,data=TrainingSet, cp=.001)
+#Указываем индикаторы, которые мы хотим использовать для предсказания и контролируем рост дерева, указывая минимальное значение параметра сложности (ср), необходимого для организации разделения.
+
+prp(DecisionTree,type=2,extra=8)
+#Отличный графический инструмент, с несколькими параметрами для красивого отображения. 
+
+printcp(DecisionTree)
+#Вывод минимального cp(параметра сложности) для каждого дерева, каждого размера
+plotcp(DecisionTree,upper="splits")
+#Чертеж среднего геометрического значения для деревьев каждого размера
+
+PrunedDecisionTree<-prune(DecisionTree,cp=0.0272109)
+#Я использую параметр сложности (cp), у которого наименьшая ошибка перекрестной проверки (xerror)
+
+prp(PrunedDecisionTree, type=2, extra=8)
+table(predict(PrunedDecisionTree,TestSet,type="class"),TestSet[,5],dnn=list('predicted','actual'))
+
+
+
+
+
+
+
