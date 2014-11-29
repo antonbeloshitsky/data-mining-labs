@@ -1,0 +1,244 @@
+############################################################
+## Using Genetic Algorithms in Quantitative Trading   
+##
+## thertrader@gmail.com - Mar 2014
+############################################################
+library(PerformanceAnalytics)
+library(rgenoud)
+library(quantmod)
+library(TTR)
+
+###############
+outputPath <- "your_path"
+theInstrument <- "SPY"
+
+data <- getSymbols(Symbols = "SPY", src = "yahoo", from = "2000-01-01", auto.assign = FALSE) # загрузили котировки SP500
+
+head(data)
+
+colnames(data) <- c("open","high","low","close","volume","adj.")
+
+###############
+fitnessFunction <- function(xx=c(1,1,1,1)){
+  print(xx)
+  rtn <- ROC(data[,"close"],n=1)
+  rsi <- RSI(data[,"close"],n=xx[1],maType="SMA")
+  smas <- SMA(data[,"close"],n=xx[3])
+  smal <- SMA(data[,"close"],n=xx[4])
+  aa <- cbind(data[,"close"],rtn,rsi,smas,smal)
+  colnames(aa) <- c("close","rtn","rsi","smas","smal")
+  
+  isData <- aa[index(aa) < "2011-01-01"]
+  
+  posBuySignal <- which(isData[,"rsi"] <= (1 - xx[2]) & isData[,"smas"] > isData[,"smal"]) + 1
+  if (length(posBuySignal) == 0)
+    posBuySignal <- NULL
+  posSellSignal <- which(isData[,"rsi"] > xx[2] & isData[,"smas"] < isData[,"smal"]) + 1
+  if (length(posSellSignal) == 0)
+    posSellSignal <- NULL
+  allSignals <- c(posBuySignal,posSellSignal)
+  allSignals <- allSignals[which(allSignals <= nrow(isData))]
+  
+  if (!is.null(allSignals) && length(allSignals) >= 50)
+    theStat <- SharpeRatio.annualized(isData[sort(allSignals),"rtn"])
+  if (is.null(allSignals) | length(allSignals) < 50)
+    theStat <- 0  
+  
+  return(theStat)
+}
+
+###############
+tradingStatistics <- function(isOrOos = TRUE, xx = c(1,1,1,1)){
+  print(xx)
+  rtn <- ROC(data[,"close"],n=1)
+  rsi <- RSI(data[,"close"],n=xx[1],maType="SMA")
+  smas <- SMA(data[,"close"],n=xx[3])
+  smal <- SMA(data[,"close"],n=xx[4])
+  aa <- cbind(data[,"close"],rtn,rsi,smas,smal)
+  colnames(aa) <- c("close","rtn","rsi","smas","smal")
+  
+  if (isOrOos == TRUE)
+    sampleData <- aa[index(aa) < "2011-01-01"]
+  if (isOrOos == FALSE)
+    sampleData <- aa[index(aa) >= "2011-01-01"]
+  
+  posBuySignal <- which(sampleData[,"rsi"] <= (1 - xx[2]) & sampleData[,"smas"] > sampleData[,"smal"]) + 1
+  if (length(posBuySignal) == 0)
+    posBuySignal <- NULL
+  posSellSignal <- which(sampleData[,"rsi"] > xx[2] & sampleData[,"smas"] < sampleData[,"smal"]) + 1
+  if (length(posSellSignal) == 0)
+    posSellSignal <- NULL
+  allSignals <- c(posBuySignal,posSellSignal)
+  allSignals <- allSignals[which(allSignals <= nrow(sampleData))]
+  
+  totalRtn <- sum(sampleData[sort(allSignals),"rtn"])
+  numberOfTrades <- length(sampleData[sort(allSignals),"rtn"])
+  hitRatio <- length(which(sampleData[sort(allSignals),"rtn"] > 0))/numberOfTrades
+  
+  return(list(totalRtn=totalRtn,numberOfTrades=numberOfTrades,hitRatio=hitRatio))
+} 
+
+###########
+optimum <- genoud(fitnessFunction, 
+                  nvars = 4,  
+                  max = TRUE,  
+                  pop.size = 30, 
+                  max.generations = 50, 
+                  wait.generations = 15,
+                  hard.generation.limit = TRUE, 
+                  starting.values = c(5,70,30,100), 
+                  MemoryMatrix = TRUE,
+                  Domains = matrix(c(5,50,10,50,
+                                     50,90,50,200),
+                                   nrow=4,ncol=2), 
+                  default.domains = 4, 
+                  solution.tolerance = 0.00001,
+                  gr = NULL, 
+                  boundary.enforcement = 2, 
+                  lexical = FALSE, 
+                  gradient.check = FALSE, 
+                  data.type.int = TRUE,  
+                  hessian = FALSE, 
+                  unif.seed = 812821, 
+                  int.seed = 53058,
+                  print.level = 2, 
+                  share.type = 0, 
+                  instance.number = 0,
+                  output.path = paste(outputPath,theInstrument,"_Summary.txt",sep=""), 
+                  output.append = FALSE,  
+                  project.path = paste(outputPath,theInstrument,"_Details.txt",sep=""), 
+                  P1=2, P2=8, P3=8, P4=6, P5=6, P6=6, P7=8, P8=6, P9=0,
+                  P9mix = NULL, 
+                  BFGSburnin = 0, 
+                  BFGSfn = NULL, 
+                  BFGShelp = NULL,
+                  cluster = FALSE, 
+                  balance = FALSE, 
+                  debug = FALSE, 
+                  control = list())
+
+  solution <- optimum$par
+
+#http://www.r-bloggers.com/using-genetic-algorithms-in-quantitative-trading/
+Enter file contents here############################################################
+## Using Genetic Algorithms in Quantitative Trading   
+##
+## thertrader@gmail.com - Mar 2014
+############################################################
+library(PerformanceAnalytics)
+library(rgenoud)
+library(quantmod)
+library(TTR)
+
+###############
+outputPath <- "your_path"
+theInstrument <- "SPY"
+
+data <- getSymbols(Symbols = "SPY", src = "yahoo", from = "2000-01-01", auto.assign = FALSE) # загрузили котировки SP500
+
+head(data)
+
+colnames(data) <- c("open","high","low","close","volume","adj.")
+
+###############
+fitnessFunction <- function(xx=c(1,1,1,1)){
+  print(xx)
+  rtn <- ROC(data[,"close"],n=1)
+  rsi <- RSI(data[,"close"],n=xx[1],maType="SMA")
+  smas <- SMA(data[,"close"],n=xx[3])
+  smal <- SMA(data[,"close"],n=xx[4])
+  aa <- cbind(data[,"close"],rtn,rsi,smas,smal)
+  colnames(aa) <- c("close","rtn","rsi","smas","smal")
+  
+  isData <- aa[index(aa) < "2011-01-01"]
+  
+  posBuySignal <- which(isData[,"rsi"] <= (1 - xx[2]) & isData[,"smas"] > isData[,"smal"]) + 1
+  if (length(posBuySignal) == 0)
+    posBuySignal <- NULL
+  posSellSignal <- which(isData[,"rsi"] > xx[2] & isData[,"smas"] < isData[,"smal"]) + 1
+  if (length(posSellSignal) == 0)
+    posSellSignal <- NULL
+  allSignals <- c(posBuySignal,posSellSignal)
+  allSignals <- allSignals[which(allSignals <= nrow(isData))]
+  
+  if (!is.null(allSignals) && length(allSignals) >= 50)
+    theStat <- SharpeRatio.annualized(isData[sort(allSignals),"rtn"])
+  if (is.null(allSignals) | length(allSignals) < 50)
+    theStat <- 0  
+  
+  return(theStat)
+}
+
+###############
+tradingStatistics <- function(isOrOos = TRUE, xx = c(1,1,1,1)){
+  print(xx)
+  rtn <- ROC(data[,"close"],n=1)
+  rsi <- RSI(data[,"close"],n=xx[1],maType="SMA")
+  smas <- SMA(data[,"close"],n=xx[3])
+  smal <- SMA(data[,"close"],n=xx[4])
+  aa <- cbind(data[,"close"],rtn,rsi,smas,smal)
+  colnames(aa) <- c("close","rtn","rsi","smas","smal")
+  
+  if (isOrOos == TRUE)
+    sampleData <- aa[index(aa) < "2011-01-01"]
+  if (isOrOos == FALSE)
+    sampleData <- aa[index(aa) >= "2011-01-01"]
+  
+  posBuySignal <- which(sampleData[,"rsi"] <= (1 - xx[2]) & sampleData[,"smas"] > sampleData[,"smal"]) + 1
+  if (length(posBuySignal) == 0)
+    posBuySignal <- NULL
+  posSellSignal <- which(sampleData[,"rsi"] > xx[2] & sampleData[,"smas"] < sampleData[,"smal"]) + 1
+  if (length(posSellSignal) == 0)
+    posSellSignal <- NULL
+  allSignals <- c(posBuySignal,posSellSignal)
+  allSignals <- allSignals[which(allSignals <= nrow(sampleData))]
+  
+  totalRtn <- sum(sampleData[sort(allSignals),"rtn"])
+  numberOfTrades <- length(sampleData[sort(allSignals),"rtn"])
+  hitRatio <- length(which(sampleData[sort(allSignals),"rtn"] > 0))/numberOfTrades
+  
+  return(list(totalRtn=totalRtn,numberOfTrades=numberOfTrades,hitRatio=hitRatio))
+} 
+
+###########
+optimum <- genoud(fitnessFunction, 
+                  nvars = 4,  
+                  max = TRUE,  
+                  pop.size = 30, 
+                  max.generations = 50, 
+                  wait.generations = 15,
+                  hard.generation.limit = TRUE, 
+                  starting.values = c(5,70,30,100), 
+                  MemoryMatrix = TRUE,
+                  Domains = matrix(c(5,50,10,50,
+                                     50,90,50,200),
+                                   nrow=4,ncol=2), 
+                  default.domains = 4, 
+                  solution.tolerance = 0.00001,
+                  gr = NULL, 
+                  boundary.enforcement = 2, 
+                  lexical = FALSE, 
+                  gradient.check = FALSE, 
+                  data.type.int = TRUE,  
+                  hessian = FALSE, 
+                  unif.seed = 812821, 
+                  int.seed = 53058,
+                  print.level = 2, 
+                  share.type = 0, 
+                  instance.number = 0,
+                  output.path = paste(outputPath,theInstrument,"_Summary.txt",sep=""), 
+                  output.append = FALSE,  
+                  project.path = paste(outputPath,theInstrument,"_Details.txt",sep=""), 
+                  P1=2, P2=8, P3=8, P4=6, P5=6, P6=6, P7=8, P8=6, P9=0,
+                  P9mix = NULL, 
+                  BFGSburnin = 0, 
+                  BFGSfn = NULL, 
+                  BFGShelp = NULL,
+                  cluster = FALSE, 
+                  balance = FALSE, 
+                  debug = FALSE, 
+                  control = list())
+
+  solution <- optimum$par
+
+#http://www.r-bloggers.com/using-genetic-algorithms-in-quantitative-trading/
