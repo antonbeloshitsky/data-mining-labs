@@ -1,0 +1,48 @@
+library(PerformanceAnalytics)
+library(zoo)
+library(tseries)
+library(fBasics)
+library(datasets)
+library(ghyp)
+library(copula)
+library(quantmod)
+require(ggplot2)
+
+AAPL_price = get.hist.quote(instrument = "AAPL", start = "2010-01-02", end = "2014-06-01",
+                             quote = c("Close"), provider = "yahoo", origin = "2005-01-01", compression = "d", 
+                             retclass = "zoo") # Загрузил цены акций Apple
+
+AAPL = diff(log(AAPL_price)) # рассчитал доходности по акциям Apple
+
+summary(AAPL)
+
+nasa <- tail(AAPL)-1
+
+?tail
+?Delt
+
+wss = (nrow(nasa)-1)*sum(apply(nasa,2,var)) 
+  for (i in 2:5) 
+  wss[i] = sum(kmeans(nasa, centers=i)$withinss)
+  wss=(data.frame(number=1:15,value=as.numeric(wss)))
+
+plot(wss)
+
+png('numberOfClusters.png',width=500)
+ggplot(wss,aes(number,value))+geom_point()+xlab("Number of Clusters")+ylab("Within groups sum of squares") 
+dev.off() 
+
+kmeanObject=kmeans(AAPL,5,iter.max=10)
+kmeanObject$centers
+autocorrelation=head(cbind(kmeanObject$cluster,lag(as.xts(kmeanObject$cluster),-1)),-1)
+xtabs(~autocorrelation[,1]+(autocorrelation[,2]))
+
+y=apply(xtabs(~autocorrelation[,1]+(autocorrelation[,2])),1,sum)
+x=xtabs(~autocorrelation[,1]+(autocorrelation[,2]))
+z=x
+for(i in 1:5)
+{
+  z[i,]=(x[i,]/y[i])
+}
+
+#http://www.r-bloggers.com/artificial-intelligence-in-trading-k-means-clustering/
