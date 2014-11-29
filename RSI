@@ -1,0 +1,79 @@
+Enter file contents herelibrary(quantmod)
+#A great quantitative trading resource 
+
+library(e1071)
+#The library containing our SVM 
+
+library(ggplot2)
+#The plotting tools we will use 
+
+
+Indicators<-data.frame(RSI3,DEMA10c,CCI20)
+Indicators<-round(Indicators,2) 
+
+Indicators<-Indicators[-nrow(Data),]
+#Removing the most recent data point for calculating the indicators, 
+#and lining it up with the direction of that bar effectively shifts 
+#our indicator calculations back by one and prevents us from accessing information we couldn’t know.
+
+Data<-AUD/USD
+#Our 4-hour bars of the Australian Dollar/US Dollar 
+#currency pair dating back to 01/01/2010. 
+#You can download it here (dropbox) for your own use.
+
+RSI3<-RSI(Op(Data),n=3)
+#The 3-period relative strength index calculated off the open 
+
+SMA50<-SMA(Op(Data),n=50)
+Trend<-Op(Data)-SMA50
+#Our measure of trend: the difference between the open price and the 50-period simple moving average 
+
+Price<-Cl(Data)-Op(Data)
+Class<-ifelse(Price>0,"UP","DOWN")
+#The variable we are looking to predict; the direction of the next bar 
+
+DataSet<-data.frame(RSI3,Trend,Class)
+DataSet<-DataSet[-c(1:49),]
+#Create the data set and removing the points where our indicators are still being calculated 
+
+Training<-DataSet[1:4528,]
+Test<-DataSet[4529:6038,]
+Val<-DataSet[6039:7548,]
+#Separate the data into 60% training set to build our model, 
+20% test set to test the patterns we found, and 20% validation set to run our strategy over new data 
+
+SVM<-svm(Class~RSI3+Trend,data=Training, kernel="radial",cost=1,gamma=1/2)
+#Build our support vector machine using a radial basis function as our kernel, 
+#the cost, or C, at 1, and the gamma function at ½, or 1 over the number of inputs we are using 
+
+TrainingPredictions<-predict(SVM,Training,type="class")
+#Run the algorithm once more over the training set to visualize the patterns it found 
+
+TrainingData<-data.frame(Training,TrainingPredictions)
+#Create a data set with the predictions 
+
+ggplot(TrainingData,aes(x=Trend,y=RSI3))+stat_density2d(geom="contour",aes(color=TrainingPredictions))+labs(title="SVM RSI3 and Trend Predictions",x="Open - SMA50",y="RSI3",color="Training Predictions")
+#Now let’s see what patterns it was able to find 
+
+ShortRange1<-which(Test$RSI3 < 25 & Test$Trend > -.010 & Test$Trend < -.005) 
+
+ShortRange2<-which(Test$RSI3 > 70 & Test$Trend < -.005) 
+
+ShortRange3<-which(Test$RSI3 > 75 & Test$Trend > .015) 
+
+LongRange1<-which(Test$RSI3 < 25 & Test$Trend < -.02) 
+
+LongRange2<-which(Test$RSI3 > 50 & Test$RSI3 < 75 & Test$Trend > .005 & Test$Trend < .01) 
+
+ShortTrades<-Test[c(ShortRange1,ShortRange2,ShortRange3),]
+ShortCorrect<-((length(which(ShortTrades[,3]=="DOWN")))/nrow(ShortTrades))*100
+#Our short trades 
+
+LongTrades<-Test[c(LongRange1,LongRange2), ]
+LongCorrect<-((length(which(LongTrades[,3]=="UP")))/nrow(LongTrades))*100
+#Our long trades 
+
+# https://www.inovancetech.com/how-to-trade-rsi.html
+
+
+
