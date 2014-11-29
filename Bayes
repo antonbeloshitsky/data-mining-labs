@@ -1,0 +1,55 @@
+library("quantmod")
+library("lubridate")
+#Упрощает работу с датами
+library("e1071")
+#Дает доступ к алгоритму наивного байесовского классификатора
+
+startDate = as.Date("2012-01-01")
+#Начало рассматриваемого промежутка
+
+endDate = as.Date("2014-01-01") 
+#Конец рассматриваемого промежутка
+
+getSymbols("AAPL", src = "yahoo", from = startDate, to = endDate) 
+#Получаем дневное OHLCV акций Apple с Yahoo Finance
+
+DayofWeek<-wday(AAPL, label=TRUE)
+#Находим день недели
+
+PriceChange<- Cl(AAPL) - Op(AAPL)
+#Находим разницу между ценой закрытия и ценой открытия.
+
+Class<-ifelse(PriceChange>0, "UP","DOWN")
+#Конвертируем в двоичную классификацию. (В наших данных не встречаются дни, 
+#когда цена открытия была равна цене закрытия, т. е. изменение было равно нулю, 
+#поэтому для упрощения мы не рассматриваем этот случай)
+
+DataSet<-data.frame(DayofWeek,Class)
+#Создаем наш набор данных
+
+MyModel<-naiveBayes(DataSet[,1],DataSet[,2])
+#Входное значение, или независимая переменная (DataSet[,1]), и то, что мы собираемся предсказывать, 
+#зависимая переменная (DataSet[,2]).
+
+EMA5<-EMA(Op(AAPL),n = 5)
+#Мы рассчитываем 5-периодную EMA по цене открытия
+
+EMA10<-EMA(Op(AAPL),n = 10)
+#Затем 10-ти периодную EMA, так же по цене открытия
+
+EMACross <- EMA5 - EMA10 
+#Положительные значения будут означать что EMA5 расположена на графике выше EMA10
+
+DataSet2<-data.frame(DayofWeek,EMACross, Class)
+DataSet2<-DataSet2[-c(1:10),]
+#Нам нужно удалить значения, в которых 10-периодная скользящая средняя все еще не рассчитана
+TrainingSet<-DataSet2[1:328,]
+#Мы используем 2/3 данных для обучения модели
+TestSet<-DataSet2[329:492,] 
+#И 1/3 для тестирования модели
+
+EMACrossModel<-naiveBayes(TrainingSet[,1:2],TrainingSet[,3])
+
+table(predict(EMACrossModel,TestSet),TestSet[,3],dnn=list('predicted','actual'))
+
+#http://habrahabr.ru/post/234303/
