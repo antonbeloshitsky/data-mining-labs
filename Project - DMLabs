@@ -1,0 +1,794 @@
+Enter file contents herelibrary(Quandl)
+library(xts)
+require(gplots)
+library(quantmod)
+library(rattle)
+library(rpart)
+library(rpart.plot)
+library(forecast)
+library(PerformanceAnalytics)
+library(zoo)
+library(tseries)
+library(fBasics)
+library(datasets)
+library(randomForest)
+library(rpart)
+
+
+Quandl.auth("tbWQLVYq4t4VyifpXR54") # Это мой тулит. с его помощью я могу выкачивать любые данные с Квандла 
+
+startDate = as.Date("2013-01-05") # исследлуем данные за прошлый календарный год
+endDate = as.Date("2014-01-05") 
+
+
+hist()
+
+# 20 мировых валют
+USDJPY.Q <- Quandl("CURRFX/USDJPY", start_date = startDate, end_date = endDate, type = "xts") 
+USDJPY <- USDJPY.Q[,"Rate"] 
+USDEUR.Q <- Quandl("CURRFX/USDEUR", start_date = startDate, end_date = endDate, type = "xts") 
+USDEUR <- USDEUR.Q[,"Rate"]
+USDGBP.Q <- Quandl("CURRFX/USDGBP", start_date = startDate, end_date = endDate, type = "xts")
+USDGBP <- USDGBP.Q[,"Rate"] 
+USDCHF.Q <- Quandl("CURRFX/USDCHF", start_date = startDate, end_date = endDate, type = "xts")
+USDCHF <- USDCHF.Q[,"Rate"] 
+USDCAD.Q <- Quandl("CURRFX/USDCAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDCAD <- USDCAD.Q[,"Rate"] 
+USDAUD.Q <- Quandl("CURRFX/USDAUD", start_date = startDate, end_date = endDate, type = "xts") 
+USDAUD <- USDAUD.Q[,"Rate"] 
+USDNZD.Q <- Quandl("CURRFX/USDNZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDNZD <- USDNZD.Q[,"Rate"] 
+USDSEK.Q <- Quandl("CURRFX/USDSEK", start_date = startDate, end_date = endDate, type = "xts") 
+USDSEK <- USDSEK.Q[,"Rate"] 
+USDNOK.Q <- Quandl("CURRFX/USDNOK", start_date = startDate, end_date = endDate, type = "xts") 
+USDNOK <- USDNOK.Q[,"Rate"] 
+USDBRL.Q <- Quandl("CURRFX/USDBRL", start_date = startDate, end_date = endDate, type = "xts")
+USDBRL <- USDBRL.Q[,"Rate"] 
+USDCNY.Q <- Quandl("CURRFX/USDCNY", start_date = startDate, end_date = endDate, type = "xts") 
+USDCNY <- USDCNY.Q[,"Rate"]
+USDINR.Q <- Quandl("CURRFX/USDINR", start_date = startDate, end_date = endDate, type = "xts") 
+USDINR <- USDINR.Q[,"Rate"] 
+USDTRY.Q <- Quandl("CURRFX/USDTRY", start_date = startDate, end_date = endDate, type = "xts") 
+USDTRY <- USDTRY.Q[,"Rate"]
+USDTHB.Q <- Quandl("CURRFX/USDTHB", start_date = startDate, end_date = endDate, type = "xts")
+USDTHB <- USDTHB.Q[,"Rate"]
+USDIDR.Q <- Quandl("CURRFX/USDIDR", start_date = startDate, end_date = endDate, type = "xts") 
+USDIDR <- USDIDR.Q[,"Rate"] 
+USDMYR.Q <- Quandl("CURRFX/USDMYR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMYR <- USDMYR.Q[,"Rate"] 
+USDMXN.Q <- Quandl("CURRFX/USDMXN", start_date = startDate, end_date = endDate, type = "xts")  
+USDMXN <- USDMXN.Q[,"Rate"] 
+USDARS.Q <- Quandl("CURRFX/USDARS", start_date = startDate, end_date = endDate, type = "xts") 
+USDARS <- USDARS.Q[,"Rate"] 
+USDDKK.Q <- Quandl("CURRFX/USDDKK", start_date = startDate, end_date = endDate, type = "xts") 
+USDDKK <- USDDKK.Q[,"Rate"] 
+USDILS.Q <- Quandl("CURRFX/USDILS", start_date = startDate, end_date = endDate, type = "xts") 
+USDILS <- USDILS.Q[,"Rate"] 
+USDPHP.Q <- Quandl("CURRFX/USDPHP", start_date = startDate, end_date = endDate, type = "xts") 
+USDPHP <- USDPHP.Q[,"Rate"]
+USDHUF.Q <- Quandl("CURRFX/USDHUF", start_date = startDate, end_date = endDate, type = "xts") 
+USDHUF <- USDHUF.Q[,"Rate"] 
+USDISK.Q <- Quandl("CURRFX/USDISK", start_date = startDate, end_date = endDate, type = "xts") 
+USDISK <- USDISK.Q[,"Rate"] 
+
+z <- merge(as.zoo(USDJPY), as.zoo(USDEUR), as.zoo(USDGBP), 
+           as.zoo(USDCHF), as.zoo(USDCAD), as.zoo(USDAUD),
+           as.zoo(USDNZD), as.zoo(USDSEK), as.zoo(USDNOK),
+           as.zoo(USDBRL), as.zoo(USDCNY), as.zoo(USDINR),
+           as.zoo(USDTRY), as.zoo(USDTHB), as.zoo(USDIDR),
+           as.zoo(USDMYR), as.zoo(USDMXN), as.zoo(USDARS),
+           as.zoo(USDDKK), as.zoo(USDILS), as.zoo(USDPHP),
+           as.zoo(USDHUF), as.zoo(USDISK), all = FALSE)  # сформировали наш датасет
+
+
+myColnames <- c("JPY", "EUR", "GBP", "CHF", "CAD", "AUD", "NZD", "SEK", "NOK","BRL","CNY","INR","TRY","THB","IDR","MYR","MX","ARS","DKK","ILS","PHP","HUF","ISK")
+colnames(z) <- myColnames
+mktPrices <- as.xts(z)
+# обозвали наш датасет
+
+mktRtns <- diff(log(mktPrices), lag = 1) # посчитали доходность валют
+mktRtns <- mktRtns[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+generate_heat_map <- function(correlationMatrix, title) 
+heatmap.2(x = correlationMatrix, cellnote = correlationMatrix, main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, trace="none", density.info="none", notecol="black")  	
+
+# создали каркас нашей тепловой карты
+
+
+valut <- round(cor(mktRtns) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map(valut, "Correlations of World currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+
+#Eastern Europe
+USDALL.Q <- Quandl("CURRFX/USDALL", start_date = startDate, end_date = endDate, type = "xts") 
+USDALL <- USDALL.Q[,"Rate"]
+USDBAM.Q <- Quandl("CURRFX/USDBAM", start_date = startDate, end_date = endDate, type = "xts") 
+USDBAM <- USDBAM.Q[,"Rate"]
+USDBGN.Q <- Quandl("CURRFX/USDBGN", start_date = startDate, end_date = endDate, type = "xts") 
+USDBGN <- USDBGN.Q[,"Rate"]
+USDHRK.Q <- Quandl("CURRFX/USDHRK", start_date = startDate, end_date = endDate, type = "xts")
+USDHRK <- USDHRK.Q[,"Rate"]
+USDCZK.Q <- Quandl("CURRFX/USDCZK", start_date = startDate, end_date = endDate, type = "xts")
+USDCZK <- USDCZK.Q[,"Rate"]
+USDMKD.Q <- Quandl("CURRFX/USDMKD", start_date = startDate, end_date = endDate, type = "xts")
+USDMKD <- USDMKD.Q[,"Rate"]
+USDPLN.Q <- Quandl("CURRFX/USDPLN", start_date = startDate, end_date = endDate, type = "xts") 
+USDPLN <- USDPLN.Q[,"Rate"]
+USDRSD.Q <- Quandl("CURRFX/USDRSD", start_date = startDate, end_date = endDate, type = "xts") 
+USDRSD <- USDRSD.Q[,"Rate"]
+USDRON.Q <- Quandl("CURRFX/USDRON", start_date = startDate, end_date = endDate, type = "xts") 
+USDRON <- USDRON.Q[,"Rate"]
+
+Eastern_Europe <- merge(as.zoo(USDALL), as.zoo(USDBAM), as.zoo(USDBGN), as.zoo(USDHRK), 
+                        as.zoo(USDCZK), as.zoo(USDMKD), as.zoo(USDPLN), as.zoo(USDRSD), 
+                        as.zoo(USDRON),all = FALSE)
+
+
+myColnames_EE <- c("ALL", "BAM", "BGN", "HRK", "CZK", "MKD", "PLN", "RSD", "RON")
+colnames(Eastern_Europe) <- myColnames_EE
+mktPrices_EE <- as.xts(Eastern_Europe)
+# обозвали наш датасет
+
+mktRtns_EE <- diff(log(mktPrices_EE), lag = 1) # посчитали доходность валют
+mktRtns_EE <- mktRtns_EE[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+generate_heat_map_EE <- function(correlationMatrix, title) 
+heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+          main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+          trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+
+valut_EE <- round(cor(mktRtns_EE) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_EE(valut_EE, "Correlations of Eastern_Europe currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+
+#Former Soviet Republics
+USDAMD.Q <- Quandl("CURRFX/USDAMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDAMD <- USDAMD.Q[,"Rate"] 
+USDAZN.Q <- Quandl("CURRFX/USDAZN", start_date = startDate, end_date = endDate, type = "xts") 
+USDAZN <- USDAZN.Q[,"Rate"]
+USDBYR.Q <- Quandl("CURRFX/USDBYR", start_date = startDate, end_date = endDate, type = "xts") 
+USDBYR <- USDBYR.Q[,"Rate"]
+USDGEL.Q <- Quandl("CURRFX/USDGEL", start_date = startDate, end_date = endDate, type = "xts") 
+USDGEL <- USDGEL.Q[,"Rate"]
+USDKZT.Q <- Quandl("CURRFX/USDKZT", start_date = startDate, end_date = endDate, type = "xts") 
+USDKZT <- USDKZT.Q[,"Rate"]
+USDKGS.Q <- Quandl("CURRFX/USDKGS", start_date = startDate, end_date = endDate, type = "xts") 
+USDKGS <- USDKGS.Q[,"Rate"]
+USDLVL.Q <- Quandl("CURRFX/USDLVL", start_date = startDate, end_date = endDate, type = "xts")
+USDLVL <- USDLVL.Q[,"Rate"]
+USDLTL.Q <- Quandl("CURRFX/USDLTL", start_date = startDate, end_date = endDate, type = "xts") 
+USDLTL <- USDLTL.Q[,"Rate"]
+USDMDL.Q <- Quandl("CURRFX/USDMDL", start_date = startDate, end_date = endDate, type = "xts") 
+USDMDL <- USDMDL.Q[,"Rate"]
+USDTJS.Q <- Quandl("CURRFX/USDTJS", start_date = startDate, end_date = endDate, type = "xts")
+USDTJS <- USDTJS.Q[,"Rate"]
+USDTMT.Q <- Quandl("CURRFX/USDTMT", start_date = startDate, end_date = endDate, type = "xts") 
+USDTMT <- USDTMT.Q[,"Rate"]
+USDUAH.Q <- Quandl("CURRFX/USDUAH", start_date = startDate, end_date = endDate, type = "xts") 
+USDUAH <- USDUAH.Q[,"Rate"]
+USDUZS.Q <- Quandl("CURRFX/USDUZS", start_date = startDate, end_date = endDate, type = "xts") 
+USDUZS <- USDUZS.Q[,"Rate"]
+
+USSR <- merge(as.zoo(USDAMD), as.zoo(USDAZN), as.zoo(USDBYR), as.zoo(USDGEL), as.zoo(USDKZT), 
+              as.zoo(USDKGS), as.zoo(USDLVL), as.zoo(USDLTL), as.zoo(USDMDL), as.zoo(USDTJS), as.zoo(USDTMT), 
+              as.zoo(USDUAH), as.zoo(USDUZS), all = FALSE)
+                      
+              
+myColnames_USSR <- c("AMD", "AZN", "BYR", "GEL", "KZT", "KGS", "LVL", "LTL", "MDL", "TJS", "TMT", "UAH", "UZS")
+colnames(USSR) <- myColnames_USSR
+mktPrices_USSR <- as.xts(USSR)
+# обозвали наш датасет
+
+mktRtns_USSR <- diff(log(mktPrices_USSR), lag = 1) # посчитали доходность валют
+mktRtns_USSR <- mktRtns_USSR[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+require(gplots)
+generate_heat_map_USSR <- function(correlationMatrix, title) 
+  heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+            main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+            trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+valut_USSR <- round(cor(mktRtns_USSR) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_USSR(valut_USSR, "Correlations of USSR currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+
+#East Asia
+USDBND.Q <- Quandl("CURRFX/USDBND", start_date = startDate, end_date = endDate, type = "xts") 
+USDBND <- USDBND.Q[,"Rate"]
+USDKHR.Q <- Quandl("CURRFX/USDKHR", start_date = startDate, end_date = endDate, type = "xts")  
+USDKHR <- USDKHR.Q[,"Rate"]
+USDCNY.Q <- Quandl("CURRFX/USDCNY", start_date = startDate, end_date = endDate, type = "xts")
+USDCNY <- USDCNY.Q[,"Rate"]
+USDHKD.Q <- Quandl("CURRFX/USDHKD", start_date = startDate, end_date = endDate, type = "xts") 
+USDHKD <- USDHKD.Q[,"Rate"]
+USDIDR.Q <- Quandl("CURRFX/USDIDR", start_date = startDate, end_date = endDate, type = "xts")  
+USDIDR <- USDIDR.Q[,"Rate"]
+USDLAK.Q <- Quandl("CURRFX/USDLAK", start_date = startDate, end_date = endDate, type = "xts") 
+USDLAK <- USDLAK.Q[,"Rate"]
+USDMYR.Q <- Quandl("CURRFX/USDMYR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMYR <- USDMYR.Q[,"Rate"]
+USDMNT.Q <- Quandl("CURRFX/USDMNT", start_date = startDate, end_date = endDate, type = "xts") 
+USDMNT <- USDMNT.Q[,"Rate"]
+USDMMK.Q <- Quandl("CURRFX/USDMMK", start_date = startDate, end_date = endDate, type = "xts") 
+USDMMK <- USDMMK.Q[,"Rate"]
+USDKPW.Q <- Quandl("CURRFX/USDKPW", start_date = startDate, end_date = endDate, type = "xts") 
+USDKPW <- USDKPW.Q[,"Rate"]
+USDPHP.Q <- Quandl("CURRFX/USDPHP", start_date = startDate, end_date = endDate, type = "xts") 
+USDPHP <- USDPHP.Q[,"Rate"]
+USDSGD.Q <- Quandl("CURRFX/USDSGD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSGD <- USDSGD.Q[,"Rate"]
+USDKRW.Q <- Quandl("CURRFX/USDKRW", start_date = startDate, end_date = endDate, type = "xts") 
+USDKRW <- USDKRW.Q[,"Rate"]
+USDTHB.Q <- Quandl("CURRFX/USDTHB", start_date = startDate, end_date = endDate, type = "xts") 
+USDTHB <- USDTHB.Q[,"Rate"]
+USDVND.Q <- Quandl("CURRFX/USDVND", start_date = startDate, end_date = endDate, type = "xts") 
+USDVND <- USDVND.Q[,"Rate"]
+
+East_Asia <- merge(as.zoo(USDBND), as.zoo(USDKHR), as.zoo(USDCNY), as.zoo(USDHKD), as.zoo(USDIDR), 
+                   as.zoo(USDLAK), as.zoo(USDMYR), as.zoo(USDMNT), as.zoo(USDMMK), as.zoo(USDKPW), 
+                   as.zoo(USDPHP), as.zoo(USDSGD), as.zoo(USDKRW), as.zoo(USDTHB), as.zoo(USDVND), all = FALSE)
+
+
+myColnames_East_Asia <- c("BND", "KHR", "CNY", "HKD","IDR","LAK","MYR","MNT","MMK","KPW","PHP","SGD","KRW","THB","VND")
+colnames(East_Asia) <- myColnames_East_Asia
+mktPrices_East_Asia <- as.xts(East_Asia)
+# обозвали наш датасет
+
+mktRtns_East_Asia <- diff(log(mktPrices_East_Asia), lag = 1) # посчитали доходность валют
+mktRtns_East_Asia <- mktRtns_East_Asia[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+require(gplots)
+generate_heat_map_East_Asia  <- function(correlationMatrix, title) 
+  heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+            main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+            trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+valut_East_Asia <- round(cor(mktRtns_East_Asia) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_East_Asia (valut_East_Asia, "Correlations of East_Asia currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+
+
+#South Asia
+USDAFN.Q <- Quandl("CURRFX/USDAFN", start_date = startDate, end_date = endDate, type = "xts") 
+USDAFN <- USDAFN.Q[,"Rate"] 
+USDBDT.Q <- Quandl("CURRFX/USDBDT", start_date = startDate, end_date = endDate, type = "xts") 
+USDBDT <- USDBDT.Q[,"Rate"]
+USDBTN.Q <- Quandl("CURRFX/USDBTN", start_date = startDate, end_date = endDate, type = "xts") 
+USDBTN <- USDBTN.Q[,"Rate"]
+USDINR.Q <- Quandl("CURRFX/USDINR", start_date = startDate, end_date = endDate, type = "xts") 
+USDINR <- USDINR.Q[,"Rate"]
+USDLKR.Q <- Quandl("CURRFX/USDLKR", start_date = startDate, end_date = endDate, type = "xts") 
+USDLKR <- USDLKR.Q[,"Rate"]
+USDMVR.Q <- Quandl("CURRFX/USDMVR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMVR <- USDMVR.Q[,"Rate"]
+USDNPR.Q <- Quandl("CURRFX/USDNPR", start_date = startDate, end_date = endDate, type = "xts") 
+USDNPR <- USDNPR.Q[,"Rate"]
+USDPKR.Q <- Quandl("CURRFX/USDPKR", start_date = startDate, end_date = endDate, type = "xts") 
+USDPKR <- USDPKR.Q[,"Rate"]
+
+
+South_Asia <- merge(as.zoo(USDAFN), as.zoo(USDBDT), as.zoo(USDBTN), as.zoo(USDINR), as.zoo(USDLKR), 
+                    as.zoo(USDMVR), as.zoo(USDNPR), as.zoo(USDPKR), all = FALSE)
+
+
+myColnames_South_Asia <- c("AFN","BDT","BTN","INR","LKR","MVR","NPR","PKR")
+colnames(South_Asia) <- myColnames_South_Asia
+mktPrices_South_Asia <- as.xts(South_Asia)
+# обозвали наш датасет
+
+mktRtns_South_Asia <- diff(log(mktPrices_South_Asia), lag = 1) # посчитали доходность валют
+mktRtns_South_Asia <- mktRtns_South_Asia[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+require(gplots)
+generate_heat_map_South_Asia <- function(correlationMatrix, title) 
+  heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+            main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+            trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+valut_South_Asia <- round(cor(mktRtns_South_Asia) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_South_Asia(valut_South_Asia, "Correlations of South_Asia  currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+#Middle East and North Africa
+USDDZD.Q <- Quandl("CURRFX/USDDZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDDZD <-USDDZD.Q[,"Rate"]
+USDBHD.Q <- Quandl("CURRFX/USDBHD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBHD <-USDBHD.Q[,"Rate"]
+USDDJF.Q <- Quandl("CURRFX/USDDJF", start_date = startDate, end_date = endDate, type = "xts") 
+USDDJF <-USDDJF.Q[,"Rate"]
+USDEGP.Q <- Quandl("CURRFX/USDEGP", start_date = startDate, end_date = endDate, type = "xts") 
+USDEGP <-USDEGP.Q[,"Rate"]
+USDIRR.Q <- Quandl("CURRFX/USDIRR", start_date = startDate, end_date = endDate, type = "xts") 
+USDIRR <-USDIRR.Q[,"Rate"]
+USDIQD.Q <- Quandl("CURRFX/USDIQD", start_date = startDate, end_date = endDate, type = "xts") 
+USDIQD <-USDIQD.Q[,"Rate"]
+USDILS.Q <- Quandl("CURRFX/USDILS", start_date = startDate, end_date = endDate, type = "xts") 
+USDILS <-USDILS.Q[,"Rate"]
+USDJOD.Q <- Quandl("CURRFX/USDJOD", start_date = startDate, end_date = endDate, type = "xts") 
+USDJOD <-USDJOD.Q[,"Rate"]
+USDKWD.Q <- Quandl("CURRFX/USDKWD", start_date = startDate, end_date = endDate, type = "xts") 
+USDKWD <-USDKWD.Q[,"Rate"]
+USDLBP.Q <- Quandl("CURRFX/USDLBP", start_date = startDate, end_date = endDate, type = "xts") 
+USDLBP <-USDLBP.Q[,"Rate"]
+USDLYD.Q <- Quandl("CURRFX/USDLYD", start_date = startDate, end_date = endDate, type = "xts") 
+USDLYD <-USDLYD.Q[,"Rate"]
+USDMAD.Q <- Quandl("CURRFX/USDMAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDMAD <-USDMAD.Q[,"Rate"]
+USDOMR.Q <- Quandl("CURRFX/USDOMR", start_date = startDate, end_date = endDate, type = "xts") 
+USDOMR <-USDOMR.Q[,"Rate"]
+USDQAR.Q <- Quandl("CURRFX/USDQAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDQAR <-USDQAR.Q[,"Rate"]
+USDSAR.Q <- Quandl("CURRFX/USDSAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDSAR <-USDSAR.Q[,"Rate"]
+USDSYP.Q <- Quandl("CURRFX/USDSYP", start_date = startDate, end_date = endDate, type = "xts") 
+USDSYP <-USDSYP.Q[,"Rate"]
+USDTND.Q <- Quandl("CURRFX/USDTND", start_date = startDate, end_date = endDate, type = "xts") 
+USDTND <-USDTND.Q[,"Rate"]
+USDAED.Q <- Quandl("CURRFX/USDAED", start_date = startDate, end_date = endDate, type = "xts") 
+USDAED <-USDAED.Q[,"Rate"]
+USDYER.Q <- Quandl("CURRFX/USDYER", start_date = startDate, end_date = endDate, type = "xts") 
+USDYER <-USDYER.Q[,"Rate"]
+
+
+MENA <- merge(as.zoo(USDDZD), as.zoo(USDBHD), as.zoo(USDDJF), as.zoo(USDEGP), as.zoo(USDIRR), 
+              as.zoo(USDIQD), as.zoo(USDILS), as.zoo(USDJOD), as.zoo(USDKWD), as.zoo(USDLBP),         
+              as.zoo(USDLYD), as.zoo(USDMAD), as.zoo(USDOMR), as.zoo(USDQAR), as.zoo(USDSAR), 
+              as.zoo(USDSYP), as.zoo(USDTND), as.zoo(USDAED), as.zoo(USDYER), all = FALSE)
+
+
+myColnames_MENA <- c("DZD", "BHD", "DJF", "EGP", "IRR", "IQD", "ILS", "JOD",
+                     "KWD", "LBP", "LYD", "MAD", "OMR", "QAR", "SAR", "SYP", "TND", "AED", "YER")
+colnames(MENA) <- myColnames_MENA
+mktPrices_MENA <- as.xts(MENA)
+# обозвали наш датасет
+
+mktRtns_MENA <- diff(log(mktPrices_MENA), lag = 1) # посчитали доходность валют
+mktRtns_MENA <- mktRtns_MENA[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+require(gplots)
+generate_heat_map_MENA <- function(correlationMatrix, title) 
+  heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+            main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+            trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+valut_MENA <- round(cor(mktRtns_MENA) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_MENA(valut_MENA, "Correlations of Middle East and North Africa currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+
+#Africa
+USDAOA.Q <- Quandl("CURRFX/USDAOA", start_date = startDate, end_date = endDate, type = "xts") 
+USDAOA <- USDAOA.Q[,"Rate"]
+USDBIF.Q <- Quandl("CURRFX/USDBIF", start_date = startDate, end_date = endDate, type = "xts") 
+USDBIF <- USDBIF.Q[,"Rate"]
+USDXOF.Q <- Quandl("CURRFX/USDXOF", start_date = startDate, end_date = endDate, type = "xts") 
+USDXOF <- USDXOF.Q[,"Rate"]
+USDBWP.Q <- Quandl("CURRFX/USDBWP", start_date = startDate, end_date = endDate, type = "xts") 
+USDBWP <- USDBWP.Q[,"Rate"]
+USDXAF.Q <- Quandl("CURRFX/USDXAF", start_date = startDate, end_date = endDate, type = "xts") 
+USDXAF <- USDXAF.Q[,"Rate"]
+USDCDF.Q <- Quandl("CURRFX/USDCDF", start_date = startDate, end_date = endDate, type = "xts") 
+USDCDF <- USDCDF.Q[,"Rate"] 
+USDKMF.Q <- Quandl("CURRFX/USDKMF", start_date = startDate, end_date = endDate, type = "xts") 
+USDKMF <- USDKMF.Q[,"Rate"]
+USDCVE.Q <- Quandl("CURRFX/USDCVE", start_date = startDate, end_date = endDate, type = "xts") 
+USDCVE <- USDCVE.Q[,"Rate"]
+USDETB.Q <- Quandl("CURRFX/USDETB", start_date = startDate, end_date = endDate, type = "xts") 
+USDETB <- USDETB.Q[,"Rate"]
+USDGHS.Q <- Quandl("CURRFX/USDGHS", start_date = startDate, end_date = endDate, type = "xts") 
+USDGHS <- USDGHS.Q[,"Rate"]
+USDGNF.Q <- Quandl("CURRFX/USDGNF", start_date = startDate, end_date = endDate, type = "xts") 
+USDGNF <- USDGNF.Q[,"Rate"]
+USDGMD.Q <- Quandl("CURRFX/USDGMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDGMD <- USDGMD.Q[,"Rate"]
+USDKES.Q <- Quandl("CURRFX/USDKES", start_date = startDate, end_date = endDate, type = "xts") 
+USDKES <- USDKES.Q[,"Rate"]
+USDLRD.Q <- Quandl("CURRFX/USDLRD", start_date = startDate, end_date = endDate, type = "xts") 
+USDLRD <- USDLRD.Q[,"Rate"]
+USDLSL.Q <- Quandl("CURRFX/USDLSL", start_date = startDate, end_date = endDate, type = "xts") 
+USDLSL <- USDLSL.Q[,"Rate"]
+USDMGA.Q <- Quandl("CURRFX/USDMGA", start_date = startDate, end_date = endDate, type = "xts") 
+USDMGA <- USDMGA.Q[,"Rate"]
+USDMZN.Q <- Quandl("CURRFX/USDMZN", start_date = startDate, end_date = endDate, type = "xts") 
+USDMZN <- USDMZN.Q[,"Rate"]
+USDMRO.Q <- Quandl("CURRFX/USDMRO", start_date = startDate, end_date = endDate, type = "xts") 
+USDMRO <- USDMRO.Q[,"Rate"]
+USDMUR.Q <- Quandl("CURRFX/USDMUR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMUR <- USDMUR.Q[,"Rate"]
+USDMWK.Q <- Quandl("CURRFX/USDMWK", start_date = startDate, end_date = endDate, type = "xts") 
+USDMWK <- USDMWK.Q[,"Rate"]
+USDNAD.Q <- Quandl("CURRFX/USDNAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDNAD <- USDNAD.Q[,"Rate"]
+USDNGN.Q <- Quandl("CURRFX/USDNGN", start_date = startDate, end_date = endDate, type = "xts") 
+USDNGN <- USDNGN.Q[,"Rate"]
+USDRWF.Q <- Quandl("CURRFX/USDRWF", start_date = startDate, end_date = endDate, type = "xts") 
+USDRWF <- USDRWF.Q[,"Rate"]
+USDSDG.Q <- Quandl("CURRFX/USDSDG", start_date = startDate, end_date = endDate, type = "xts") 
+USDSDG <- USDSDG.Q[,"Rate"]
+USDSLL.Q <- Quandl("CURRFX/USDSLL", start_date = startDate, end_date = endDate, type = "xts") 
+USDSLL <- USDSLL.Q[,"Rate"]
+USDSOS.Q <- Quandl("CURRFX/USDSOS", start_date = startDate, end_date = endDate, type = "xts") 
+USDSOS <- USDSOS.Q[,"Rate"]
+USDSTD.Q <- Quandl("CURRFX/USDSTD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSTD <- USDSTD.Q[,"Rate"]
+USDSZL.Q <- Quandl("CURRFX/USDSZL", start_date = startDate, end_date = endDate, type = "xts") 
+USDSZL <- USDSZL.Q[,"Rate"]
+USDSCR.Q <- Quandl("CURRFX/USDSCR", start_date = startDate, end_date = endDate, type = "xts") 
+USDSCR <- USDSCR.Q[,"Rate"]
+USDTZS.Q <- Quandl("CURRFX/USDTZS", start_date = startDate, end_date = endDate, type = "xts") 
+USDTZS <- USDTZS.Q[,"Rate"]
+USDUGX.Q <- Quandl("CURRFX/USDUGX", start_date = startDate, end_date = endDate, type = "xts") 
+USDUGX <- USDUGX.Q[,"Rate"]
+USDZAR.Q <- Quandl("CURRFX/USDZAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDZAR <- USDZAR.Q[,"Rate"]
+USDZMW.Q <- Quandl("CURRFX/USDZMW", start_date = startDate, end_date = endDate, type = "xts") 
+USDZMW <- USDZMW.Q[,"Rate"]
+
+ 
+AFRIKA <- merge(as.zoo(USDAOA), as.zoo(USDBIF), as.zoo(USDXOF), as.zoo(USDBWP), as.zoo(USDXAF), as.zoo(USDCDF), 
+              as.zoo(USDKMF), as.zoo(USDCVE), as.zoo(USDETB), as.zoo(USDGHS), as.zoo(USDGNF), as.zoo(USDGMD),
+              as.zoo(USDKES), as.zoo(USDLRD), as.zoo(USDLSL), as.zoo(USDMGA), as.zoo(USDMZN), as.zoo(USDMRO), 
+              as.zoo(USDMUR), as.zoo(USDMWK), as.zoo(USDNAD), as.zoo(USDNGN), as.zoo(USDRWF), as.zoo(USDSDG), 
+              as.zoo(USDSLL), as.zoo(USDSOS), as.zoo(USDSTD), as.zoo(USDSZL), as.zoo(USDSCR), as.zoo(USDTZS),
+              as.zoo(USDUGX), as.zoo(USDZAR), as.zoo(USDZMW),
+              all = FALSE)
+
+
+myColnames_AFRIKA <- c("AOA","BIF","XOF","BWP","XAF","CDF","KMF","CVE","ETB","GHS", "GNF","GMD","KES","LRD",
+                     "LSL","MGA","MZN","MRO","MUR","MWK","NAD","NGN","RWF","SDG","SLL","SOS","STD","SZL","SCR",
+                     "TZS","UGX","ZAR","ZMW")
+
+colnames(AFRIKA) <- myColnames_AFRIKA
+mktPrices_AFRIKA <- as.xts(AFRIKA)
+# обозвали наш датасет
+
+str(AFRIKA)
+head(AFRIKA)
+
+mktRtns_AFRIKA <- diff(log(mktPrices_AFRIKA), lag = 1) # посчитали доходность валют
+mktRtns_AFRIKA <- mktRtns_AFRIKA[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+require(gplots)
+generate_heat_map_AFRIKA <- function(correlationMatrix, title) 
+  heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+            main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+            trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+valut_AFRIKA <- round(cor(mktRtns_AFRIKA) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_AFRIKA(valut_AFRIKA, "Correlations of Africa currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+
+
+#America
+USDCAD.Q <- Quandl("CURRFX/USDCAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDCAD <- USDCAD.Q[,"Rate"]
+USDMXN.Q <- Quandl("CURRFX/USDMXN", start_date = startDate, end_date = endDate, type = "xts") 
+USDMXN <- USDMXN.Q[,"Rate"]
+USDXCD.Q <- Quandl("CURRFX/USDXCD", start_date = startDate, end_date = endDate, type = "xts") 
+USDXCD <- USDXCD.Q[,"Rate"]
+USDBSD.Q <- Quandl("CURRFX/USDBSD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBSD <- USDBSD.Q[,"Rate"]
+USDBBD.Q <- Quandl("CURRFX/USDBBD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBBD <- USDBBD.Q[,"Rate"]
+USDCUP.Q <- Quandl("CURRFX/USDCUP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCUP <- USDCUP.Q[,"Rate"]
+USDDOP.Q <- Quandl("CURRFX/USDDOP", start_date = startDate, end_date = endDate, type = "xts") 
+USDDOP <- USDDOP.Q[,"Rate"]
+USDHTG.Q <- Quandl("CURRFX/USDHTG", start_date = startDate, end_date = endDate, type = "xts") 
+USDHTG <- USDHTG.Q[,"Rate"]
+USDJMD.Q <- Quandl("CURRFX/USDJMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDJMD <- USDJMD.Q[,"Rate"]
+USDTTD.Q <- Quandl("CURRFX/USDTTD", start_date = startDate, end_date = endDate, type = "xts") 
+USDTTD <- USDTTD.Q[,"Rate"]
+USDBZD.Q <- Quandl("CURRFX/USDBZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBZD <- USDBZD.Q[,"Rate"]
+USDCRC.Q <- Quandl("CURRFX/USDCRC", start_date = startDate, end_date = endDate, type = "xts") 
+USDCRC <- USDCRC.Q[,"Rate"]
+USDGTQ.Q <- Quandl("CURRFX/USDGTQ", start_date = startDate, end_date = endDate, type = "xts") 
+USDGTQ <- USDGTQ.Q[,"Rate"]
+USDHNL.Q <- Quandl("CURRFX/USDHNL", start_date = startDate, end_date = endDate, type = "xts") 
+USDHNL <- USDHNL.Q[,"Rate"]
+USDNIO.Q <- Quandl("CURRFX/USDNIO", start_date = startDate, end_date = endDate, type = "xts") 
+USDNIO <- USDNIO.Q[,"Rate"]
+USDPAB.Q <- Quandl("CURRFX/USDPAB", start_date = startDate, end_date = endDate, type = "xts") 
+USDPAB <- USDPAB.Q[,"Rate"]
+USDARS.Q <- Quandl("CURRFX/USDARS", start_date = startDate, end_date = endDate, type = "xts") 
+USDARS <- USDARS.Q[,"Rate"]
+USDBOB.Q <- Quandl("CURRFX/USDBOB", start_date = startDate, end_date = endDate, type = "xts") 
+USDBOB <- USDBOB.Q[,"Rate"]
+USDBRL.Q <- Quandl("CURRFX/USDBRL", start_date = startDate, end_date = endDate, type = "xts") 
+USDBRL <- USDBRL.Q[,"Rate"]
+USDCLP.Q <- Quandl("CURRFX/USDCLP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCLP <- USDCLP.Q[,"Rate"]
+USDCOP.Q <- Quandl("CURRFX/USDCOP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCOP <- USDCOP.Q[,"Rate"]
+USDGYD.Q <- Quandl("CURRFX/USDGYD", start_date = startDate, end_date = endDate, type = "xts") 
+USDGYD <- USDGYD.Q[,"Rate"]
+USDPYG.Q <- Quandl("CURRFX/USDPYG", start_date = startDate, end_date = endDate, type = "xts") 
+USDPYG <- USDPYG.Q[,"Rate"]
+USDPEN.Q <- Quandl("CURRFX/USDPEN", start_date = startDate, end_date = endDate, type = "xts") 
+USDPEN <- USDPEN.Q[,"Rate"]
+USDSRD.Q <- Quandl("CURRFX/USDSRD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSRD <- USDSRD.Q[,"Rate"]
+USDUYU.Q <- Quandl("CURRFX/USDUYU", start_date = startDate, end_date = endDate, type = "xts") 
+USDUYU <- USDUYU.Q[,"Rate"]
+USDVEF.Q <- Quandl("CURRFX/USDVEF", start_date = startDate, end_date = endDate, type = "xts") 
+USDVEF <- USDVEF.Q[,"Rate"]
+
+
+AMERIKA <- merge(as.zoo(USDCAD), as.zoo(USDMXN), as.zoo(USDXCD), as.zoo(USDBSD), as.zoo(USDBBD), as.zoo(USDCUP), 
+                 as.zoo(USDDOP), as.zoo(USDHTG), as.zoo(USDJMD), as.zoo(USDTTD), as.zoo(USDBZD), as.zoo(USDCRC),
+                 as.zoo(USDGTQ), as.zoo(USDHNL), as.zoo(USDNIO), as.zoo(USDPAB), as.zoo(USDARS), as.zoo(USDBOB),
+                 as.zoo(USDBRL), as.zoo(USDCLP), as.zoo(USDCOP), as.zoo(USDGYD), as.zoo(USDPYG), as.zoo(USDPEN),
+                 as.zoo(USDSRD), as.zoo(USDUYU), as.zoo(USDVEF), all = FALSE)
+
+myColnames_AMERIKA <- c("CAD","MXN","XCD","BSD","BBD","CUP","DOP","HTG","JMD","TTD","BZD","CRC",
+                        "GTQ","HNL","NIO","PAB","ARS","BOB","BRL","CLP","COP","GYD","PYG","PEN","SRD","UYU","VEF")
+                        
+colnames(AMERIKA) <- myColnames_AMERIKA
+mktPrices_AMERIKA <- as.xts(AMERIKA)
+# обозвали наш датасет
+
+mktRtns_AMERIKA <- diff(log(mktPrices_AMERIKA), lag = 1) # посчитали доходность валют
+mktRtns_AMERIKA <- mktRtns_AMERIKA[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+require(gplots)
+generate_heat_map_AMERIKA <- function(correlationMatrix, title) 
+  heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+            main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+            trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+valut_AMERIKA <- round(cor(mktRtns_AMERIKA) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_AMERIKA(valut_AMERIKA, "Correlations of AMERIKA currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+
+
+#Australia and Oceania
+USDAUD.Q <- Quandl("CURRFX/USDAUD", start_date = startDate, end_date = endDate, type = "xts") 
+USDAUD <- USDAUD.Q[,"Rate"]
+USDFJD.Q <- Quandl("CURRFX/USDFJD", start_date = startDate, end_date = endDate, type = "xts") 
+USDFJD <- USDFJD.Q[,"Rate"]
+USDNZD.Q <- Quandl("CURRFX/USDNZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDNZD <- USDNZD.Q[,"Rate"]
+USDPGK.Q <- Quandl("CURRFX/USDPGK", start_date = startDate, end_date = endDate, type = "xts") 
+USDPGK <- USDPGK.Q[,"Rate"]
+USDWST.Q <- Quandl("CURRFX/USDWST", start_date = startDate, end_date = endDate, type = "xts") 
+USDWST <- USDWST.Q[,"Rate"]
+USDSBD.Q <- Quandl("CURRFX/USDSBD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSBD <- USDSBD.Q[,"Rate"]
+USDTOP.Q <- Quandl("CURRFX/USDTOP", start_date = startDate, end_date = endDate, type = "xts") 
+USDTOP <- USDTOP.Q[,"Rate"]
+USDVUV.Q <- Quandl("CURRFX/USDVUV", start_date = startDate, end_date = endDate, type = "xts") 
+USDVUV <- USDVUV.Q[,"Rate"]
+
+Oceania <- merge(as.zoo(USDAUD),as.zoo(USDFJD), as.zoo(USDNZD), as.zoo(USDPGK), as.zoo(USDWST),    
+                 as.zoo(USDSBD), as.zoo(USDTOP), as.zoo(USDVUV), all = FALSE)
+
+myColnames_Oceania <- c("AUD","FJD","NZD","PGK", "WST", "SBD", "TOP", "VUV")
+
+colnames(Oceania) <- myColnames_Oceania
+mktPrices_Oceania <- as.xts(Oceania)
+# обозвали наш датасет
+
+mktRtns_Oceania <- diff(log(mktPrices_Oceania), lag = 1) # посчитали доходность валют
+mktRtns_Oceania <- mktRtns_Oceania[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+require(gplots)
+generate_heat_map_Oceania <- function(correlationMatrix, title) 
+  heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+            main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+            trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+valut_Oceania <- round(cor(mktRtns_Oceania) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_Oceania(valut_Oceania, "Correlations of Australia and Oceania currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+# а теперь построим карту между всеми валютами
+
+world <- merge(z,Eastern_Europe,USSR,East_Asia,South_Asia,MENA,AMERIKA,Oceania)
+myColnames_world <- c("JPY", "EUR", "GBP", "CHF", "CAD", "AUD", "NZD", "SEK", "NOK","BRL","CNY",
+             "INR","TRY","THB","IDR","MYR","MX","ARS","DKK","ILS","PHP","HUF","ISK","ALL",
+             "BAM", "BGN", "HRK", "CZK", "MKD", "PLN", "RSD", "RON","AMD", "AZN","BYR","GEL",
+             "KZT", "KGS", "LVL", "LTL", "MDL", "TJS", "TMT", "UAH", "UZS","BND", "KHR", "CNY",
+             "HKD","IDR","LAK","MYR","MNT","MMK","KPW","PHP","SGD","KRW","THB","VND","AFN","BDT",
+             "BTN","INR","LKR","MVR","NPR","PKR", "DZD", "BHD", "DJF", "EGP","IRR", "IQD", "ILS", "JOD",
+             "KWD", "LBP", "LYD", "MAD", "OMR", "QAR", "SAR", "SYP", "TND", "AED", "YER","CAD","MXN",
+             "XCD","BSD","BBD","CUP","DOP","HTG","JMD","TTD","BZD","CRC","GTQ","HNL","NIO",
+             "PAB","ARS","BOB","BRL","CLP","COP","GYD","PYG","PEN","SRD","UYU","VEF", "AUD","FJD","NZD",
+             "PGK", "WST", "SBD", "TOP", "VUV")
+             
+colnames(world) <- myColnames_world
+mktPrices_world <- as.xts(world)
+# обозвали наш датасет
+
+mktRtns_world <- diff(log(mktPrices_world), lag = 1) # посчитали доходность валют
+mktRtns_world <- mktRtns_world[-1, ]  # убрали верхнюю строку потому что она нулевая
+
+
+require(gplots)
+generate_heat_map_world <- function(correlationMatrix, title) 
+  heatmap.2(x = correlationMatrix, cellnote = correlationMatrix,
+            main = title, symm = TRUE, dendrogram="none", Rowv = FALSE, 
+            trace="none", density.info="none", notecol="black")   
+
+# создали каркас нашей тепловой карты
+
+valut_world <- round(cor(mktRtns_world) * 100)
+# конвертировали  доходность в проценты и округлили
+
+generate_heat_map_world(valut_world, "Correlations of World currency Returns")
+# заполнили нашу тепловую карту значениями корреляции
+
+
+# Делаем прогнозы
+USDCHF <- USDCHF.Q[,"Rate"] 
+plot(USDCHF)
+
+summary(USDCHF)
+str(USDCHF)
+length(USDCHF)
+
+train1000 <-USDCHF[1:250,] # тренировочная выборка
+exam1000 <-USDCHF[250:260,] # экзаменационная выборка
+secondDate = as.Date("2013-12-20") 
+
+USDCHF.ts<-ts(train1000, start=startDate,frequency=1)
+exam.ts <- ts(exam1000, start = secondDate,frequency=1)
+
+tail(USDCHF.ts)
+summary(USDCHF.ts)
+
+#Lets test some models
+m1<-meanf(USDCHF.ts, 7) #  Mean Forecast
+plot(m1)
+m2<-rwf(USDCHF.ts, 7) # Random Walk Forecast
+plot(m2)
+
+#STL ETS Decomposition
+m3<-ets(USDCHF.ts, model='ZZZ')
+plot(m3)
+
+#ARIMA
+m4<-auto.arima(USDCHF.ts)
+plot(forecast(m4, h=7))
+
+#neural networks
+m5<-nnetar(USDCHF.ts)
+plot(forecast(m5, h=7))
+
+#Тестируем аккуратность наших моделей
+a1<-accuracy(m1)
+a2<-accuracy(m2)
+a3<-accuracy(m3)
+a4<-accuracy(m4)
+a5<-accuracy(m5)
+
+a.table<-rbind(a1, a2, a3, a4, a5)
+
+#Combining into a table with row names
+row.names(a.table)<-c("Mean", "Naive","ETS", "ARIMA", "Neuro") 
+#make into a data frame so the best model is first, according to MAPE
+a.table<-as.data.frame(a.table)
+a.table<-a.table[order(a.table$MAPE),]
+a.table
+
+?accuracy
+# Применим дереьвя решений для прогноза Франка
+
+USDCHF <- USDCHF.Q[,"Rate"] 
+plot(USDCHF)
+
+#для повторяемости результатов
+set.seed(1)
+
+returnCHF <- diff(log(USDCHF)) # Доходность Франка
+names(returnCHF) <- c('return') # присвоили название колонке доходностей
+
+# Предикторы
+USDEUR <- USDEUR.Q[,"Rate"] 
+returnEUR <- diff(log(USDEUR)) # Доходность Франка
+names(returnEUR) <- c('return') # присвоили название колонке доходностей
+
+RSI3CHF<-RSI(USDCHF, n= 3) #Рассчитываем 3-х дневный индекс относительной силы (RSI) для Франка
+RSI3EUR<-RSI(USDEUR, n= 3) #Рассчитываем 3-х дневный индекс относительной силы (RSI) для Евро
+
+EMA5CHF<-EMA(USDCHF,n=5) #Рассчитываем 5-дневную экспоненциальную скользящую среднюю (EMA)
+EMA5EUR<-EMA(USDEUR,n=5) #Рассчитываем 5-дневную экспоненциальную скользящую среднюю (EMA)
+
+
+data <- cbind(returnCHF, returnEUR, RSI3CHF, RSI3EUR,lag(returnCHF),lag(returnEUR),EMA5CHF,EMA5EUR)
+
+names(data) <- c("returnCHF","returnEUR","RSI3CHF","RSI3EUR","lagCHF","lagEUR","EMA5CHF","EMA5EUR")
+                 
+data <- data[complete.cases(data),] # неведомым образом убрали пустые значения
+
+head(data)
+
+#бенчмарк
+print(sqrt(sum((as.vector(test$returnCHF))^2))/length(test$returnCHF))
+# Предположим, что объемы торгов вообще не меняются и посмотрим, какую ошибку даст это предположение: 0.0006447381
+
+split <- runif(dim(data)[1]) > 0.2 # в этом месте мы разбили датасет на тестовую и тренировочную выборку
+train <- data[split,]
+test <- data[!split,]
+
+rf <- randomForest(returnCHF ~ ., train) # тренеруем деревцо
+predictions <- predict(rf, test)# делаем предсказание 
+print(sqrt(sum((as.vector(predictions - test$returnCHF))^2))/length(predictions)) # типа посчитали ошибку прогноза
+#ошибка равна 0.0002865221, что несколько лучше, чем 0.0006447381
+
+importance(rf)
+# самым важным предиктором коазался EMA5CHF
+
+# Улучшим предсказание с помощью ансамбля деревьев. 
+
+ntrees <- 300 #кол-во деревьев
+res <- numeric(ntrees)
+prd <- numeric(nrow(test))
+for(i in 1:ntrees){
+  #выберем 70% рядов и колонок из множества данных
+  x <- runif(nrow(train))>0.3;
+  y <- runif(ncol(train))>0.3;
+  #обязательно включим label
+  y[1] <- TRUE
+  traindata <- train[x,y]
+  #генерим полное дерево не оптимизируя процесс
+  tree <- rpart(returnCHF ~ ., traindata, control=rpart.control(cp=.0))
+  #усредняем предсказание со всеми предыдущими деревьями
+  prd <- prd + predict(tree, test)
+  predictions <- prd / i
+  #оцениваем ошибку
+  res[i] <- sqrt(sum((as.vector(predictions - test$returnCHF))^2))/length(predictions)
+  print(res[i])
+}
+
+plot(res, type='l')
+head(res)
+
+res[1:50]
+
+plot(res[1:50], type='l')
+
+
+head(sort(res[1:50]))
