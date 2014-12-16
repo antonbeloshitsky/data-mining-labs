@@ -1,0 +1,839 @@
+library(Quandl)
+library(xts)
+require(gplots)
+library(quantmod)
+library(rattle)
+library(rpart)
+library(rpart.plot)
+library(corrgram)
+library(ellipse)
+library(FactoMineR)
+library(Hmisc)
+library(car)
+library(PerformanceAnalytics)
+library(ggplot2)
+library(corrplot)
+
+Quandl.auth("tbWQLVYq4t4VyifpXR54") # Это мой тулит. с его помощью я могу выкачивать любые данные с Квандла 
+
+startDate = as.Date("2009-01-05") # исследуем данные за прошлый календарный год
+endDate = as.Date("2014-05-05") 
+
+
+# 24 мировых валютs
+USDJPY.Q <- Quandl("CURRFX/USDJPY", start_date = startDate, end_date = endDate, type = "xts") 
+USDJPY <- USDJPY.Q[,"Rate"] 
+USDEUR.Q <- Quandl("CURRFX/USDEUR", start_date = startDate, end_date = endDate, type = "xts") 
+USDEUR <- USDEUR.Q[,"Rate"]
+USDGBP.Q <- Quandl("CURRFX/USDGBP", start_date = startDate, end_date = endDate, type = "xts")
+USDGBP <- USDGBP.Q[,"Rate"] 
+USDCHF.Q <- Quandl("CURRFX/USDCHF", start_date = startDate, end_date = endDate, type = "xts")
+USDCHF <- USDCHF.Q[,"Rate"] 
+USDCAD.Q <- Quandl("CURRFX/USDCAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDCAD <- USDCAD.Q[,"Rate"] 
+USDAUD.Q <- Quandl("CURRFX/USDAUD", start_date = startDate, end_date = endDate, type = "xts") 
+USDAUD <- USDAUD.Q[,"Rate"] 
+USDNZD.Q <- Quandl("CURRFX/USDNZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDNZD <- USDNZD.Q[,"Rate"] 
+USDSEK.Q <- Quandl("CURRFX/USDSEK", start_date = startDate, end_date = endDate, type = "xts") 
+USDSEK <- USDSEK.Q[,"Rate"] 
+USDNOK.Q <- Quandl("CURRFX/USDNOK", start_date = startDate, end_date = endDate, type = "xts") 
+USDNOK <- USDNOK.Q[,"Rate"] 
+USDBRL.Q <- Quandl("CURRFX/USDBRL", start_date = startDate, end_date = endDate, type = "xts")
+USDBRL <- USDBRL.Q[,"Rate"] 
+USDCNY.Q <- Quandl("CURRFX/USDCNY", start_date = startDate, end_date = endDate, type = "xts") 
+USDCNY <- USDCNY.Q[,"Rate"]
+USDINR.Q <- Quandl("CURRFX/USDINR", start_date = startDate, end_date = endDate, type = "xts") 
+USDINR <- USDINR.Q[,"Rate"] 
+USDTRY.Q <- Quandl("CURRFX/USDTRY", start_date = startDate, end_date = endDate, type = "xts") 
+USDTRY <- USDTRY.Q[,"Rate"]
+USDTHB.Q <- Quandl("CURRFX/USDTHB", start_date = startDate, end_date = endDate, type = "xts")
+USDTHB <- USDTHB.Q[,"Rate"]
+USDIDR.Q <- Quandl("CURRFX/USDIDR", start_date = startDate, end_date = endDate, type = "xts") 
+USDIDR <- USDIDR.Q[,"Rate"] 
+USDMYR.Q <- Quandl("CURRFX/USDMYR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMYR <- USDMYR.Q[,"Rate"] 
+USDMXN.Q <- Quandl("CURRFX/USDMXN", start_date = startDate, end_date = endDate, type = "xts")  
+USDMXN <- USDMXN.Q[,"Rate"] 
+USDARS.Q <- Quandl("CURRFX/USDARS", start_date = startDate, end_date = endDate, type = "xts") 
+USDARS <- USDARS.Q[,"Rate"] 
+USDDKK.Q <- Quandl("CURRFX/USDDKK", start_date = startDate, end_date = endDate, type = "xts") 
+USDDKK <- USDDKK.Q[,"Rate"] 
+USDILS.Q <- Quandl("CURRFX/USDILS", start_date = startDate, end_date = endDate, type = "xts") 
+USDILS <- USDILS.Q[,"Rate"] 
+USDPHP.Q <- Quandl("CURRFX/USDPHP", start_date = startDate, end_date = endDate, type = "xts") 
+USDPHP <- USDPHP.Q[,"Rate"]
+USDHUF.Q <- Quandl("CURRFX/USDHUF", start_date = startDate, end_date = endDate, type = "xts") 
+USDHUF <- USDHUF.Q[,"Rate"] 
+USDISK.Q <- Quandl("CURRFX/USDISK", start_date = startDate, end_date = endDate, type = "xts") 
+USDISK <- USDISK.Q[,"Rate"]
+USDRUB.Q <- Quandl("CURRFX/USDRUB", start_date = startDate, end_date = endDate, type = "xts") 
+USDRUB <- USDRUB.Q[,"Rate"] 
+
+z <- merge(as.zoo(USDJPY), as.zoo(USDEUR), as.zoo(USDGBP), 
+           as.zoo(USDCHF), as.zoo(USDCAD), as.zoo(USDAUD),
+           as.zoo(USDNZD), as.zoo(USDSEK), as.zoo(USDNOK),
+           as.zoo(USDBRL), as.zoo(USDCNY), as.zoo(USDINR),
+           as.zoo(USDTRY), as.zoo(USDTHB), as.zoo(USDIDR),
+           as.zoo(USDMYR), as.zoo(USDMXN), as.zoo(USDARS),
+           as.zoo(USDDKK), as.zoo(USDILS), as.zoo(USDPHP),
+           as.zoo(USDHUF), as.zoo(USDISK), as.zoo(USDRUB),all = FALSE)  # сформировали наш датасет
+
+myColnames <- c("JPY", "EUR", "GBP","CHF", "CAD", "AUD", "NZD", "SEK", "NOK","BRL",
+                "CNY","INR","TRY","THB","IDR","MYR","MXN","ARS","DKK","ILS", "PHP","HUF","ISK","RUB")
+colnames(z) <- myColnames
+mktPrices <- as.xts(z)
+# обозвали наш датасет
+
+mktRtns <- diff(log(mktPrices), lag = 1) # посчитали доходность валют в проценты
+mktRtns <- mktRtns[-1, ]  # убрали верхнюю строку потому что она нулевая (аналогично надо будет убрать прочие строки)
+valut <- round(cor(mktRtns) * 100)
+
+corrgram(valut, order = "PCA", lower.panel=panel.shade,
+         upper.panel=NULL, gap=0.2, abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Gratest Economies")
+
+corrgram(valut, order = "PCA", lower.panel=panel.shade,
+         upper.panel=NULL, gap=0.2, abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for Gratest Economies")
+
+SIGN <- rcorr(mktRtns,type=c("pearson","spearman")) # Получили матрицу P-value, в которой 0 - подтвержденная корреляция, а все иные значения - ложная корреляция  
+
+# Убрали Японию и Аргентину
+
+z_adj <- merge(as.zoo(USDEUR), as.zoo(USDGBP), 
+               as.zoo(USDCHF), as.zoo(USDCAD), as.zoo(USDAUD),
+               as.zoo(USDNZD), as.zoo(USDSEK), as.zoo(USDNOK),
+               as.zoo(USDBRL), as.zoo(USDCNY), as.zoo(USDINR),
+               as.zoo(USDTRY), as.zoo(USDTHB), as.zoo(USDIDR),
+               as.zoo(USDMYR), as.zoo(USDMXN), 
+               as.zoo(USDDKK), as.zoo(USDILS), as.zoo(USDPHP),
+               as.zoo(USDHUF), as.zoo(USDISK), as.zoo(USDRUB),all = FALSE)  # сформировали наш датасет
+
+
+myColnames_adj <- c("EUR", "GBP","CHF", "CAD", "AUD", "NZD", "SEK", "NOK","BRL",
+                "CNY","INR","TRY","THB","IDR","MYR","MXN","DKK","ILS", "PHP","HUF","ISK","RUB")
+
+colnames(z_adj) <- myColnames_adj
+mktPrices_adj <- as.xts(z_adj)
+# обозвали наш датасет
+
+mktRtns_adj <- diff(log(mktPrices_adj), lag = 1) # посчитали доходность валют в проценты
+mktRtns_adj <- mktRtns_adj[-1, ]  # убрали верхнюю строку потому что она нулевая (аналогично надо будет убрать прочие строки)
+valut_adj <- round(cor(mktRtns_adj) * 100)
+
+corrgram(valut_adj, order = "PCA", lower.panel=panel.shade,
+         upper.panel=NULL, gap=0.2, abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Gratest Economies")
+
+corrgram(valut_adj, order = "PCA", lower.panel=panel.shade,
+         upper.panel=NULL, gap=0.2, abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for Gratest Economies")
+
+SIGN_adj <- rcorr(mktRtns_adj,type=c("pearson","spearman")) # Получили матрицу P-value, в которой 0 - подтвержденная корреляция, а все иные значения - ложная корреляция  
+
+cor.for.PCA <- cor(mktRtns_adj) # коррреляция специально для Главных компонент 
+Greatest.PCA <- prcomp(cor.for.PCA, scale = TRUE) # Сами главные компоненты
+plot(Greatest.PCA) # график ошибки от числа компонент 
+summary(Greatest.PCA)
+biplot(Greatest.PCA)
+a1 <- Greatest.PCA$rotation[,1]
+a2 <- Greatest.PCA$rotation[,2]
+a3 <- Greatest.PCA$rotation[,3]
+
+plot(a2 ~ a1)
+plot(a2 ~ a3)
+
+library(rgl)
+plot3d(a1,a2,a3, lwd =TRUE)
+
+#Eastern Europe
+USDALL.Q <- Quandl("CURRFX/USDALL", start_date = startDate, end_date = endDate, type = "xts") 
+USDALL <- USDALL.Q[,"Rate"]
+USDBAM.Q <- Quandl("CURRFX/USDBAM", start_date = startDate, end_date = endDate, type = "xts") 
+USDBAM <- USDBAM.Q[,"Rate"]
+USDBGN.Q <- Quandl("CURRFX/USDBGN", start_date = startDate, end_date = endDate, type = "xts") 
+USDBGN <- USDBGN.Q[,"Rate"]
+USDHRK.Q <- Quandl("CURRFX/USDHRK", start_date = startDate, end_date = endDate, type = "xts")
+USDHRK <- USDHRK.Q[,"Rate"]
+USDCZK.Q <- Quandl("CURRFX/USDCZK", start_date = startDate, end_date = endDate, type = "xts")
+USDCZK <- USDCZK.Q[,"Rate"]
+USDMKD.Q <- Quandl("CURRFX/USDMKD", start_date = startDate, end_date = endDate, type = "xts")
+USDMKD <- USDMKD.Q[,"Rate"]
+USDPLN.Q <- Quandl("CURRFX/USDPLN", start_date = startDate, end_date = endDate, type = "xts") 
+USDPLN <- USDPLN.Q[,"Rate"]
+USDRSD.Q <- Quandl("CURRFX/USDRSD", start_date = startDate, end_date = endDate, type = "xts") 
+USDRSD <- USDRSD.Q[,"Rate"]
+USDRON.Q <- Quandl("CURRFX/USDRON", start_date = startDate, end_date = endDate, type = "xts") 
+USDRON <- USDRON.Q[,"Rate"]
+
+Eastern_Europe <- merge(as.zoo(USDALL), as.zoo(USDBAM), as.zoo(USDBGN), as.zoo(USDHRK), 
+                        as.zoo(USDCZK), as.zoo(USDMKD), as.zoo(USDPLN), as.zoo(USDRSD), 
+                        as.zoo(USDRON),all = FALSE)
+
+myColnames_EE <- c("ALL", "BAM", "BGN", "HRK", "CZK", "MKD", "PLN", "RSD", "RON")
+colnames(Eastern_Europe) <- myColnames_EE
+mktPrices_EE <- as.xts(Eastern_Europe)
+# обозвали наш датасет
+
+mktRtns_EE <- diff(log(mktPrices_EE), lag = 1) # посчитали доходность валют
+mktRtns_EE <- mktRtns_EE[-1, ]  # убрали верхнюю строку потому что она нулевая
+valut_EE <- round(cor(mktRtns_EE) * 100)
+# конвертировали  доходность в проценты и округлили
+
+corrplot.mixed(cor(mktRtns_EE))
+
+corrgram(valut_EE, order = "PCA", lower.panel=panel.shade,
+         upper.panel=NULL, gap=0.2, abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Eastern Europe")
+
+corrgram(valut_EE, order = "PCA", lower.panel=panel.shade,
+         upper.panel=NULL, gap=0.2, abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for Eastern Europe")
+
+SIGN_EE <- rcorr(mktRtns_EE,type=c("pearson","spearman")) # корреляция всех валют значима
+
+cor.for.PCA_EE <- cor(mktRtns_EE) # коррреляция специально для Главных компонент 
+EE.PCA <- prcomp(cor.for.PCA_EE, scale = TRUE) # Сами главные компоненты
+plot(EE.PCA) # график ошибки от числа компонент 
+summary(EE.PCA)
+biplot(EE.PCA)
+
+#Former Soviet Republics
+USDAMD.Q <- Quandl("CURRFX/USDAMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDAMD <- USDAMD.Q[,"Rate"] 
+USDAZN.Q <- Quandl("CURRFX/USDAZN", start_date = startDate, end_date = endDate, type = "xts") 
+USDAZN <- USDAZN.Q[,"Rate"]
+USDBYR.Q <- Quandl("CURRFX/USDBYR", start_date = startDate, end_date = endDate, type = "xts") 
+USDBYR <- USDBYR.Q[,"Rate"]
+USDGEL.Q <- Quandl("CURRFX/USDGEL", start_date = startDate, end_date = endDate, type = "xts") 
+USDGEL <- USDGEL.Q[,"Rate"]
+USDKZT.Q <- Quandl("CURRFX/USDKZT", start_date = startDate, end_date = endDate, type = "xts") 
+USDKZT <- USDKZT.Q[,"Rate"]
+USDKGS.Q <- Quandl("CURRFX/USDKGS", start_date = startDate, end_date = endDate, type = "xts") 
+USDKGS <- USDKGS.Q[,"Rate"]
+USDLVL.Q <- Quandl("CURRFX/USDLVL", start_date = startDate, end_date = endDate, type = "xts")
+USDLVL <- USDLVL.Q[,"Rate"]
+USDLTL.Q <- Quandl("CURRFX/USDLTL", start_date = startDate, end_date = endDate, type = "xts") 
+USDLTL <- USDLTL.Q[,"Rate"]
+USDMDL.Q <- Quandl("CURRFX/USDMDL", start_date = startDate, end_date = endDate, type = "xts") 
+USDMDL <- USDMDL.Q[,"Rate"]
+USDTJS.Q <- Quandl("CURRFX/USDTJS", start_date = startDate, end_date = endDate, type = "xts")
+USDTJS <- USDTJS.Q[,"Rate"]
+USDTMT.Q <- Quandl("CURRFX/USDTMT", start_date = startDate, end_date = endDate, type = "xts") 
+USDTMT <- USDTMT.Q[,"Rate"]
+USDUAH.Q <- Quandl("CURRFX/USDUAH", start_date = startDate, end_date = endDate, type = "xts") 
+USDUAH <- USDUAH.Q[,"Rate"]
+USDUZS.Q <- Quandl("CURRFX/USDUZS", start_date = startDate, end_date = endDate, type = "xts") 
+USDUZS <- USDUZS.Q[,"Rate"]
+USDRUB.Q <- Quandl("CURRFX/USDRUB", start_date = startDate, end_date = endDate, type = "xts") 
+USDRUB <- USDRUB.Q[,"Rate"] 
+
+USSR <- merge(as.zoo(USDAMD), as.zoo(USDAZN), as.zoo(USDBYR), as.zoo(USDGEL), as.zoo(USDKZT), 
+              as.zoo(USDKGS), as.zoo(USDLVL), as.zoo(USDLTL), as.zoo(USDMDL), as.zoo(USDTJS), as.zoo(USDTMT), 
+              as.zoo(USDUAH), as.zoo(USDUZS), as.zoo(USDRUB), all = FALSE)
+
+myColnames_USSR <- c("AMD", "AZN", "BYR", "GEL", "KZT", "KGS", 
+                     "LVL", "LTL", "MDL", "TJS", "TMT", "UAH", "UZS", "RUB")
+colnames(USSR) <- myColnames_USSR
+mktPrices_USSR <- as.xts(USSR)
+# обозвали наш датасет
+
+mktRtns_USSR <- diff(log(mktPrices_USSR), lag = 1) # посчитали доходность валют
+mktRtns_USSR <- mktRtns_USSR[-1,-11]  # убрали верхнюю строку потому что она нулевая и 11 столбец, потому что он нолево
+valut_USSR <- round(cor(mktRtns_USSR) * 100)
+# конвертировали  доходность в проценты и округлили
+
+corrgram(valut_USSR, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for USSR")
+
+corrgram(valut_USSR, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for USSR")
+
+SIGN_USSR <- rcorr(mktRtns_USSR,type=c("pearson","spearman")) # убрали таджикистан грузию  Армению Киргизию и Узебкистан, и туркменистан но много незначимых связей осталось
+
+USSR_adj <-  merge(as.zoo(USDAZN), as.zoo(USDBYR), as.zoo(USDKZT), 
+                   as.zoo(USDLVL), as.zoo(USDLTL), as.zoo(USDMDL),  
+                   as.zoo(USDUAH), as.zoo(USDRUB), all = FALSE)
+
+myColnames_USSR_adj <- c("AZN", "BYR", "KZT",
+                     "LVL", "LTL", "MDL", "UAH", "RUB")
+colnames(USSR_adj) <- myColnames_USSR_adj
+mktPrices_USSR_adj <- as.xts(USSR_adj)
+# обозвали наш датасет
+
+mktRtns_USSR_adj <- diff(log(mktPrices_USSR_adj), lag = 1) # посчитали доходность валют
+mktRtns_USSR_adj <- mktRtns_USSR_adj[-1,]  # убрали верхнюю строку потому что она нулевая и 11 столбец, потому что он нолево
+valut_USSR_adj <- round(cor(mktRtns_USSR_adj) * 100)
+# конвертировали  доходность в проценты и округлили
+SIGN_USSR_adj <- rcorr(mktRtns_USSR_adj,type=c("pearson","spearman"))
+
+corrgram(valut_USSR_adj, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for USSR")
+
+corrgram(valut_USSR_adj, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for USSR")
+
+corrplot.mixed(cor(mktRtns_USSR_adj))
+
+cor.for.PCA_USSR <- cor(mktRtns_USSR_adj) # коррреляция специально для Главных компонент 
+USSR.PCA <- prcomp(cor.for.PCA_USSR, scale = TRUE) # Сами главные компоненты
+plot(USSR.PCA) # график ошибки от числа компонент 
+summary(USSR.PCA)
+biplot(USSR.PCA)
+
+
+
+#Asia
+USDBND.Q <- Quandl("CURRFX/USDBND", start_date = startDate, end_date = endDate, type = "xts") 
+USDBND <- USDBND.Q[,"Rate"]
+USDKHR.Q <- Quandl("CURRFX/USDKHR", start_date = startDate, end_date = endDate, type = "xts")  
+USDKHR <- USDKHR.Q[,"Rate"]
+USDCNY.Q <- Quandl("CURRFX/USDCNY", start_date = startDate, end_date = endDate, type = "xts")
+USDCNY <- USDCNY.Q[,"Rate"]
+USDHKD.Q <- Quandl("CURRFX/USDHKD", start_date = startDate, end_date = endDate, type = "xts") 
+USDHKD <- USDHKD.Q[,"Rate"]
+USDIDR.Q <- Quandl("CURRFX/USDIDR", start_date = startDate, end_date = endDate, type = "xts")  
+USDIDR <- USDIDR.Q[,"Rate"]
+USDLAK.Q <- Quandl("CURRFX/USDLAK", start_date = startDate, end_date = endDate, type = "xts") 
+USDLAK <- USDLAK.Q[,"Rate"]
+USDMYR.Q <- Quandl("CURRFX/USDMYR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMYR <- USDMYR.Q[,"Rate"]
+USDMNT.Q <- Quandl("CURRFX/USDMNT", start_date = startDate, end_date = endDate, type = "xts") 
+USDMNT <- USDMNT.Q[,"Rate"]
+USDMMK.Q <- Quandl("CURRFX/USDMMK", start_date = startDate, end_date = endDate, type = "xts") 
+USDMMK <- USDMMK.Q[,"Rate"]
+USDPHP.Q <- Quandl("CURRFX/USDPHP", start_date = startDate, end_date = endDate, type = "xts") 
+USDPHP <- USDPHP.Q[,"Rate"]
+USDSGD.Q <- Quandl("CURRFX/USDSGD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSGD <- USDSGD.Q[,"Rate"]
+USDKRW.Q <- Quandl("CURRFX/USDKRW", start_date = startDate, end_date = endDate, type = "xts") 
+USDKRW <- USDKRW.Q[,"Rate"]
+USDTHB.Q <- Quandl("CURRFX/USDTHB", start_date = startDate, end_date = endDate, type = "xts") 
+USDTHB <- USDTHB.Q[,"Rate"]
+USDVND.Q <- Quandl("CURRFX/USDVND", start_date = startDate, end_date = endDate, type = "xts") 
+USDVND <- USDVND.Q[,"Rate"]
+USDAFN.Q <- Quandl("CURRFX/USDAFN", start_date = startDate, end_date = endDate, type = "xts") 
+USDAFN <- USDAFN.Q[,"Rate"] 
+USDBDT.Q <- Quandl("CURRFX/USDBDT", start_date = startDate, end_date = endDate, type = "xts") 
+USDBDT <- USDBDT.Q[,"Rate"]
+USDBTN.Q <- Quandl("CURRFX/USDBTN", start_date = startDate, end_date = endDate, type = "xts") 
+USDBTN <- USDBTN.Q[,"Rate"]
+USDINR.Q <- Quandl("CURRFX/USDINR", start_date = startDate, end_date = endDate, type = "xts") 
+USDINR <- USDINR.Q[,"Rate"]
+USDLKR.Q <- Quandl("CURRFX/USDLKR", start_date = startDate, end_date = endDate, type = "xts") 
+USDLKR <- USDLKR.Q[,"Rate"]
+USDMVR.Q <- Quandl("CURRFX/USDMVR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMVR <- USDMVR.Q[,"Rate"]
+USDNPR.Q <- Quandl("CURRFX/USDNPR", start_date = startDate, end_date = endDate, type = "xts") 
+USDNPR <- USDNPR.Q[,"Rate"]
+USDPKR.Q <- Quandl("CURRFX/USDPKR", start_date = startDate, end_date = endDate, type = "xts") 
+USDPKR <- USDPKR.Q[,"Rate"]
+USDJPY.Q <- Quandl("CURRFX/USDJPY", start_date = startDate, end_date = endDate, type = "xts") 
+USDJPY <- USDJPY.Q[,"Rate"] 
+
+Asia <- merge(as.zoo(USDBND), as.zoo(USDKHR), as.zoo(USDCNY), as.zoo(USDHKD), as.zoo(USDIDR), 
+              as.zoo(USDLAK), as.zoo(USDMYR), as.zoo(USDMNT), as.zoo(USDMMK), as.zoo(USDPHP),  
+              as.zoo(USDSGD), as.zoo(USDKRW), as.zoo(USDTHB), as.zoo(USDVND), as.zoo(USDAFN),
+              as.zoo(USDBDT), as.zoo(USDBTN), as.zoo(USDINR), as.zoo(USDLKR), 
+              as.zoo(USDMVR), as.zoo(USDNPR), as.zoo(USDPKR), as.zoo(USDJPY), all = FALSE)   
+          
+myColnames_Asia <- c("BND", "KHR", "CNY", "HKD","IDR","LAK","MYR","MNT","MMK","PHP","SGD","KRW","THB",
+                          "VND", "AFN","BDT","BTN","INR","LKR","MVR","NPR","PKR","JPY")
+
+colnames(Asia) <- myColnames_Asia
+mktPrices_Asia <- as.xts(Asia)
+# обозвали наш датасет
+
+mktRtns_Asia <- diff(log(mktPrices_Asia), lag = 1) # посчитали доходность валют
+mktRtns_Asia <- mktRtns_Asia[-1,]  # убрали верхнюю строку потому что она нулевая
+valut_Asia <- round(cor(mktRtns_Asia) * 100)
+# конвертировали  доходность в проценты и округлили
+
+corrgram(valut_Asia, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Asia")
+
+corrgram(valut_Asia, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for Asia")
+
+SIGN_Asia <- rcorr(mktRtns_Asia,type=c("pearson","spearman")) # 
+
+#убрали MNT MMK VND  AFN mvr
+
+Asia_adj <- merge(as.zoo(USDBND), as.zoo(USDCNY), as.zoo(USDHKD), as.zoo(USDIDR), 
+             as.zoo(USDMYR), as.zoo(USDPHP),  
+              as.zoo(USDSGD), as.zoo(USDKRW), as.zoo(USDTHB),  
+               as.zoo(USDBTN), as.zoo(USDINR),  
+              as.zoo(USDNPR),   all = FALSE)   
+
+myColnames_Asia_adj <- c("BND", "CNY", "HKD","IDR","MYR","PHP","SGD","KRW","THB",
+                     "BTN","INR","NPR")
+
+colnames(Asia_adj) <- myColnames_Asia_adj
+mktPrices_Asia_adj <- as.xts(Asia_adj)
+# обозвали наш датасет
+
+mktRtns_Asia_adj <- diff(log(mktPrices_Asia_adj), lag = 1) # посчитали доходность валют
+mktRtns_Asia_adj <- mktRtns_Asia_adj[-1,]  # убрали верхнюю строку потому что она нулевая
+valut_Asia_adj <- round(cor(mktRtns_Asia_adj) * 100)
+# конвертировали  доходность в проценты и округлили
+
+SIGN_Asia_adj <- rcorr(mktRtns_Asia_adj,type=c("pearson","spearman")) # 
+
+corrgram(valut_Asia_adj, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Asia")
+
+corrgram(valut_Asia_adj, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation forAsia")
+
+#Middle East and North Africa
+USDDZD.Q <- Quandl("CURRFX/USDDZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDDZD <-USDDZD.Q[,"Rate"]
+USDBHD.Q <- Quandl("CURRFX/USDBHD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBHD <-USDBHD.Q[,"Rate"]
+USDDJF.Q <- Quandl("CURRFX/USDDJF", start_date = startDate, end_date = endDate, type = "xts") 
+USDDJF <-USDDJF.Q[,"Rate"]
+USDEGP.Q <- Quandl("CURRFX/USDEGP", start_date = startDate, end_date = endDate, type = "xts") 
+USDEGP <-USDEGP.Q[,"Rate"]
+USDIRR.Q <- Quandl("CURRFX/USDIRR", start_date = startDate, end_date = endDate, type = "xts") 
+USDIRR <-USDIRR.Q[,"Rate"]
+USDIQD.Q <- Quandl("CURRFX/USDIQD", start_date = startDate, end_date = endDate, type = "xts") 
+USDIQD <-USDIQD.Q[,"Rate"]
+USDILS.Q <- Quandl("CURRFX/USDILS", start_date = startDate, end_date = endDate, type = "xts") 
+USDILS <-USDILS.Q[,"Rate"]
+USDJOD.Q <- Quandl("CURRFX/USDJOD", start_date = startDate, end_date = endDate, type = "xts") 
+USDJOD <-USDJOD.Q[,"Rate"]
+USDKWD.Q <- Quandl("CURRFX/USDKWD", start_date = startDate, end_date = endDate, type = "xts") 
+USDKWD <-USDKWD.Q[,"Rate"]
+USDLBP.Q <- Quandl("CURRFX/USDLBP", start_date = startDate, end_date = endDate, type = "xts") 
+USDLBP <-USDLBP.Q[,"Rate"]
+USDLYD.Q <- Quandl("CURRFX/USDLYD", start_date = startDate, end_date = endDate, type = "xts") 
+USDLYD <-USDLYD.Q[,"Rate"]
+USDMAD.Q <- Quandl("CURRFX/USDMAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDMAD <-USDMAD.Q[,"Rate"]
+USDOMR.Q <- Quandl("CURRFX/USDOMR", start_date = startDate, end_date = endDate, type = "xts") 
+USDOMR <-USDOMR.Q[,"Rate"]
+USDQAR.Q <- Quandl("CURRFX/USDQAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDQAR <-USDQAR.Q[,"Rate"]
+USDSAR.Q <- Quandl("CURRFX/USDSAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDSAR <-USDSAR.Q[,"Rate"]
+USDSYP.Q <- Quandl("CURRFX/USDSYP", start_date = startDate, end_date = endDate, type = "xts") 
+USDSYP <-USDSYP.Q[,"Rate"]
+USDTND.Q <- Quandl("CURRFX/USDTND", start_date = startDate, end_date = endDate, type = "xts") 
+USDTND <-USDTND.Q[,"Rate"]
+USDAED.Q <- Quandl("CURRFX/USDAED", start_date = startDate, end_date = endDate, type = "xts") 
+USDAED <-USDAED.Q[,"Rate"]
+USDYER.Q <- Quandl("CURRFX/USDYER", start_date = startDate, end_date = endDate, type = "xts") 
+USDYER <-USDYER.Q[,"Rate"]
+
+MENA <- merge(as.zoo(USDDZD), as.zoo(USDBHD), as.zoo(USDDJF), as.zoo(USDEGP), as.zoo(USDIRR), 
+              as.zoo(USDIQD), as.zoo(USDILS), as.zoo(USDJOD), as.zoo(USDKWD), as.zoo(USDLBP),         
+              as.zoo(USDLYD), as.zoo(USDMAD), as.zoo(USDOMR), as.zoo(USDQAR), as.zoo(USDSAR), 
+              as.zoo(USDSYP), as.zoo(USDTND), as.zoo(USDAED), as.zoo(USDYER), all = FALSE)
+
+myColnames_MENA <- c("DZD", "BHD", "DJF", "EGP", "IRR", "IQD", "ILS", "JOD",
+                     "KWD", "LBP", "LYD", "MAD", "OMR", "QAR", "SAR", "SYP", "TND", "AED", "YER")
+colnames(MENA) <- myColnames_MENA
+mktPrices_MENA <- as.xts(MENA)
+# обозвали наш датасет
+
+mktRtns_MENA <- diff(log(mktPrices_MENA), lag = 1) # посчитали доходность валют
+mktRtns_MENA <- mktRtns_MENA[-1, ]  # убрали верхнюю строку потому что она нулевая
+valut_MENA <- round(cor(mktRtns_MENA) * 100)
+
+corrgram(valut_MENA, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Middle East and North Africa")
+
+corrgram(valut_MENA, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for Middle East and North Africa")
+
+SIGN_MENA <- rcorr(mktRtns_MENA,type=c("pearson","spearman")) # 
+# убрать SAR jod YER AED TND IRR KWD ILS
+
+
+MENA_adj <- merge(as.zoo(USDDZD), as.zoo(USDBHD), as.zoo(USDDJF), as.zoo(USDEGP),  
+              as.zoo(USDIQD), as.zoo(USDLBP),         
+              as.zoo(USDLYD), as.zoo(USDMAD), as.zoo(USDOMR), as.zoo(USDQAR),  
+              as.zoo(USDSYP), all = FALSE)
+
+myColnames_MENA_adj <- c("DZD", "BHD", "DJF", "EGP", "IQD",  
+                      "LBP", "LYD", "MAD", "OMR", "QAR", "SYP")
+
+colnames(MENA_adj) <- myColnames_MENA_adj
+mktPrices_MENA_adj <- as.xts(MENA_adj)
+# обозвали наш датасет
+
+mktRtns_MENA_adj  <- diff(log(mktPrices_MENA_adj ), lag = 1) # посчитали доходность валют
+mktRtns_MENA_adj  <- mktRtns_MENA_adj [-1, ]  # убрали верхнюю строку потому что она нулевая
+valut_MENA_adj  <- round(cor(mktRtns_MENA_adj ) * 100)
+
+SIGN_MENA_adj <- rcorr(mktRtns_MENA_adj ,type=c("pearson","spearman")) # 
+
+corrgram(valut_MENA_adj, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Middle East and North Africa")
+
+corrgram(valut_MENA_adj, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for Middle East and North Africa")
+
+#Africa
+USDAOA.Q <- Quandl("CURRFX/USDAOA", start_date = startDate, end_date = endDate, type = "xts") 
+USDAOA <- USDAOA.Q[,"Rate"]
+USDBIF.Q <- Quandl("CURRFX/USDBIF", start_date = startDate, end_date = endDate, type = "xts") 
+USDBIF <- USDBIF.Q[,"Rate"]
+USDXOF.Q <- Quandl("CURRFX/USDXOF", start_date = startDate, end_date = endDate, type = "xts") 
+USDXOF <- USDXOF.Q[,"Rate"]
+USDBWP.Q <- Quandl("CURRFX/USDBWP", start_date = startDate, end_date = endDate, type = "xts") 
+USDBWP <- USDBWP.Q[,"Rate"]
+USDXAF.Q <- Quandl("CURRFX/USDXAF", start_date = startDate, end_date = endDate, type = "xts") 
+USDXAF <- USDXAF.Q[,"Rate"]
+USDCDF.Q <- Quandl("CURRFX/USDCDF", start_date = startDate, end_date = endDate, type = "xts") 
+USDCDF <- USDCDF.Q[,"Rate"] 
+USDKMF.Q <- Quandl("CURRFX/USDKMF", start_date = startDate, end_date = endDate, type = "xts") 
+USDKMF <- USDKMF.Q[,"Rate"]
+USDCVE.Q <- Quandl("CURRFX/USDCVE", start_date = startDate, end_date = endDate, type = "xts") 
+USDCVE <- USDCVE.Q[,"Rate"]
+USDETB.Q <- Quandl("CURRFX/USDETB", start_date = startDate, end_date = endDate, type = "xts") 
+USDETB <- USDETB.Q[,"Rate"]
+USDGHS.Q <- Quandl("CURRFX/USDGHS", start_date = startDate, end_date = endDate, type = "xts") 
+USDGHS <- USDGHS.Q[,"Rate"]
+USDGNF.Q <- Quandl("CURRFX/USDGNF", start_date = startDate, end_date = endDate, type = "xts") 
+USDGNF <- USDGNF.Q[,"Rate"]
+USDGMD.Q <- Quandl("CURRFX/USDGMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDGMD <- USDGMD.Q[,"Rate"]
+USDKES.Q <- Quandl("CURRFX/USDKES", start_date = startDate, end_date = endDate, type = "xts") 
+USDKES <- USDKES.Q[,"Rate"]
+USDLRD.Q <- Quandl("CURRFX/USDLRD", start_date = startDate, end_date = endDate, type = "xts") 
+USDLRD <- USDLRD.Q[,"Rate"]
+USDLSL.Q <- Quandl("CURRFX/USDLSL", start_date = startDate, end_date = endDate, type = "xts") 
+USDLSL <- USDLSL.Q[,"Rate"]
+USDMGA.Q <- Quandl("CURRFX/USDMGA", start_date = startDate, end_date = endDate, type = "xts") 
+USDMGA <- USDMGA.Q[,"Rate"]
+USDMZN.Q <- Quandl("CURRFX/USDMZN", start_date = startDate, end_date = endDate, type = "xts") 
+USDMZN <- USDMZN.Q[,"Rate"]
+USDMRO.Q <- Quandl("CURRFX/USDMRO", start_date = startDate, end_date = endDate, type = "xts") 
+USDMRO <- USDMRO.Q[,"Rate"]
+USDMUR.Q <- Quandl("CURRFX/USDMUR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMUR <- USDMUR.Q[,"Rate"]
+USDMWK.Q <- Quandl("CURRFX/USDMWK", start_date = startDate, end_date = endDate, type = "xts") 
+USDMWK <- USDMWK.Q[,"Rate"]
+USDNAD.Q <- Quandl("CURRFX/USDNAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDNAD <- USDNAD.Q[,"Rate"]
+USDNGN.Q <- Quandl("CURRFX/USDNGN", start_date = startDate, end_date = endDate, type = "xts") 
+USDNGN <- USDNGN.Q[,"Rate"]
+USDRWF.Q <- Quandl("CURRFX/USDRWF", start_date = startDate, end_date = endDate, type = "xts") 
+USDRWF <- USDRWF.Q[,"Rate"]
+USDSDG.Q <- Quandl("CURRFX/USDSDG", start_date = startDate, end_date = endDate, type = "xts") 
+USDSDG <- USDSDG.Q[,"Rate"]
+USDSLL.Q <- Quandl("CURRFX/USDSLL", start_date = startDate, end_date = endDate, type = "xts") 
+USDSLL <- USDSLL.Q[,"Rate"]
+USDSOS.Q <- Quandl("CURRFX/USDSOS", start_date = startDate, end_date = endDate, type = "xts") 
+USDSOS <- USDSOS.Q[,"Rate"]
+USDSTD.Q <- Quandl("CURRFX/USDSTD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSTD <- USDSTD.Q[,"Rate"]
+USDSZL.Q <- Quandl("CURRFX/USDSZL", start_date = startDate, end_date = endDate, type = "xts") 
+USDSZL <- USDSZL.Q[,"Rate"]
+USDSCR.Q <- Quandl("CURRFX/USDSCR", start_date = startDate, end_date = endDate, type = "xts") 
+USDSCR <- USDSCR.Q[,"Rate"]
+USDTZS.Q <- Quandl("CURRFX/USDTZS", start_date = startDate, end_date = endDate, type = "xts") 
+USDTZS <- USDTZS.Q[,"Rate"]
+USDUGX.Q <- Quandl("CURRFX/USDUGX", start_date = startDate, end_date = endDate, type = "xts") 
+USDUGX <- USDUGX.Q[,"Rate"]
+USDZAR.Q <- Quandl("CURRFX/USDZAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDZAR <- USDZAR.Q[,"Rate"]
+USDZMW.Q <- Quandl("CURRFX/USDZMW", start_date = startDate, end_date = endDate, type = "xts") 
+USDZMW <- USDZMW.Q[,"Rate"]
+ 
+AFRIKA <- merge(as.zoo(USDAOA), as.zoo(USDBIF), as.zoo(USDXOF), as.zoo(USDBWP), as.zoo(USDXAF), as.zoo(USDCDF), 
+              as.zoo(USDKMF), as.zoo(USDCVE), as.zoo(USDETB), as.zoo(USDGHS), as.zoo(USDGNF), as.zoo(USDGMD),
+              as.zoo(USDKES), as.zoo(USDLRD), as.zoo(USDLSL), as.zoo(USDMGA), as.zoo(USDMZN), as.zoo(USDMRO), 
+              as.zoo(USDMUR), as.zoo(USDMWK), as.zoo(USDNAD), as.zoo(USDNGN), as.zoo(USDRWF), as.zoo(USDSDG), 
+              as.zoo(USDSLL), as.zoo(USDSOS), as.zoo(USDSTD), as.zoo(USDSZL), as.zoo(USDSCR), as.zoo(USDTZS),
+              as.zoo(USDUGX), as.zoo(USDZAR), as.zoo(USDZMW),
+              all = FALSE)
+
+myColnames_AFRIKA <- c("AOA","BIF","XOF","BWP","XAF","CDF","KMF","CVE","ETB","GHS", "GNF","GMD","KES","LRD",
+                     "LSL","MGA","MZN","MRO","MUR","MWK","NAD","NGN","RWF","SDG","SLL","SOS","STD","SZL","SCR",
+                     "TZS","UGX","ZAR","ZMW")
+
+colnames(AFRIKA) <- myColnames_AFRIKA
+mktPrices_AFRIKA <- as.xts(AFRIKA)
+# обозвали наш датасет
+
+mktRtns_AFRIKA <- diff(log(mktPrices_AFRIKA), lag = 1) # посчитали доходность валют
+mktRtns_AFRIKA <- mktRtns_AFRIKA[-1, ]  # убрали верхнюю строку потому что она нулевая
+valut_AFRIKA <- round(cor(mktRtns_AFRIKA) * 100)
+
+corrgram(valut_AFRIKA, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Africa")
+
+corrgram(valut_AFRIKA, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for Africa")
+
+SIGN_AFRIKA <- rcorr(mktRtns_AFRIKA ,type=c("pearson","spearman")) # 
+
+# это какая-то жесть.......
+
+
+#America
+USDCAD.Q <- Quandl("CURRFX/USDCAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDCAD <- USDCAD.Q[,"Rate"]
+USDMXN.Q <- Quandl("CURRFX/USDMXN", start_date = startDate, end_date = endDate, type = "xts") 
+USDMXN <- USDMXN.Q[,"Rate"]
+USDXCD.Q <- Quandl("CURRFX/USDXCD", start_date = startDate, end_date = endDate, type = "xts") 
+USDXCD <- USDXCD.Q[,"Rate"]
+USDBSD.Q <- Quandl("CURRFX/USDBSD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBSD <- USDBSD.Q[,"Rate"]
+USDBBD.Q <- Quandl("CURRFX/USDBBD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBBD <- USDBBD.Q[,"Rate"]
+USDCUP.Q <- Quandl("CURRFX/USDCUP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCUP <- USDCUP.Q[,"Rate"]
+USDDOP.Q <- Quandl("CURRFX/USDDOP", start_date = startDate, end_date = endDate, type = "xts") 
+USDDOP <- USDDOP.Q[,"Rate"]
+USDHTG.Q <- Quandl("CURRFX/USDHTG", start_date = startDate, end_date = endDate, type = "xts") 
+USDHTG <- USDHTG.Q[,"Rate"]
+USDJMD.Q <- Quandl("CURRFX/USDJMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDJMD <- USDJMD.Q[,"Rate"]
+USDTTD.Q <- Quandl("CURRFX/USDTTD", start_date = startDate, end_date = endDate, type = "xts") 
+USDTTD <- USDTTD.Q[,"Rate"]
+USDBZD.Q <- Quandl("CURRFX/USDBZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBZD <- USDBZD.Q[,"Rate"]
+USDCRC.Q <- Quandl("CURRFX/USDCRC", start_date = startDate, end_date = endDate, type = "xts") 
+USDCRC <- USDCRC.Q[,"Rate"]
+USDGTQ.Q <- Quandl("CURRFX/USDGTQ", start_date = startDate, end_date = endDate, type = "xts") 
+USDGTQ <- USDGTQ.Q[,"Rate"]
+USDHNL.Q <- Quandl("CURRFX/USDHNL", start_date = startDate, end_date = endDate, type = "xts") 
+USDHNL <- USDHNL.Q[,"Rate"]
+USDNIO.Q <- Quandl("CURRFX/USDNIO", start_date = startDate, end_date = endDate, type = "xts") 
+USDNIO <- USDNIO.Q[,"Rate"]
+USDPAB.Q <- Quandl("CURRFX/USDPAB", start_date = startDate, end_date = endDate, type = "xts") 
+USDPAB <- USDPAB.Q[,"Rate"]
+USDARS.Q <- Quandl("CURRFX/USDARS", start_date = startDate, end_date = endDate, type = "xts") 
+USDARS <- USDARS.Q[,"Rate"]
+USDBOB.Q <- Quandl("CURRFX/USDBOB", start_date = startDate, end_date = endDate, type = "xts") 
+USDBOB <- USDBOB.Q[,"Rate"]
+USDBRL.Q <- Quandl("CURRFX/USDBRL", start_date = startDate, end_date = endDate, type = "xts") 
+USDBRL <- USDBRL.Q[,"Rate"]
+USDCLP.Q <- Quandl("CURRFX/USDCLP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCLP <- USDCLP.Q[,"Rate"]
+USDCOP.Q <- Quandl("CURRFX/USDCOP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCOP <- USDCOP.Q[,"Rate"]
+USDGYD.Q <- Quandl("CURRFX/USDGYD", start_date = startDate, end_date = endDate, type = "xts") 
+USDGYD <- USDGYD.Q[,"Rate"]
+USDPYG.Q <- Quandl("CURRFX/USDPYG", start_date = startDate, end_date = endDate, type = "xts") 
+USDPYG <- USDPYG.Q[,"Rate"]
+USDPEN.Q <- Quandl("CURRFX/USDPEN", start_date = startDate, end_date = endDate, type = "xts") 
+USDPEN <- USDPEN.Q[,"Rate"]
+USDSRD.Q <- Quandl("CURRFX/USDSRD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSRD <- USDSRD.Q[,"Rate"]
+USDUYU.Q <- Quandl("CURRFX/USDUYU", start_date = startDate, end_date = endDate, type = "xts") 
+USDUYU <- USDUYU.Q[,"Rate"]
+USDVEF.Q <- Quandl("CURRFX/USDVEF", start_date = startDate, end_date = endDate, type = "xts") 
+USDVEF <- USDVEF.Q[,"Rate"]
+
+AMERIKA <- merge(as.zoo(USDCAD), as.zoo(USDMXN),  as.zoo(USDBSD), 
+                 as.zoo(USDDOP), as.zoo(USDHTG), as.zoo(USDJMD), as.zoo(USDTTD), as.zoo(USDBZD), as.zoo(USDCRC),
+                 as.zoo(USDGTQ), as.zoo(USDHNL), as.zoo(USDNIO), as.zoo(USDARS), as.zoo(USDBOB),
+                 as.zoo(USDBRL), as.zoo(USDCLP), as.zoo(USDCOP), as.zoo(USDPYG), as.zoo(USDPEN),
+                 as.zoo(USDSRD), as.zoo(USDUYU), all = FALSE)
+
+myColnames_AMERIKA <- c("CAD","MXN","BSD","DOP","HTG","JMD","TTD","BZD","CRC",
+                        "GTQ","HNL","NIO","ARS","BOB","BRL","CLP","COP","PYG","PEN","SRD","UYU")
+                        
+colnames(AMERIKA) <- myColnames_AMERIKA
+mktPrices_AMERIKA <- as.xts(AMERIKA)
+# обозвали наш датасет
+
+mktRtns_AMERIKA <- diff(log(mktPrices_AMERIKA), lag = 1) # посчитали доходность валют
+mktRtns_AMERIKA <- mktRtns_AMERIKA[-1, ] 
+tail(mktRtns_AMERIKA)
+
+valut_AMERIKA <- round(cor(mktRtns_AMERIKA) * 100)
+
+corrgram(valut_AMERIKA, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for AMERIKA")
+
+corrgram(valut_AMERIKA, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for AMERIKA")
+
+
+SIGN_MERIKA <- rcorr(mktRtns_AMERIKA ,type=c("pearson","spearman")) # 
+# убрать VEF BRL SRD MXN JMD..... 
+
+AMERIKA_adj <- merge(as.zoo(USDCAD), as.zoo(USDBSD), 
+                 as.zoo(USDDOP), as.zoo(USDHTG), as.zoo(USDTTD), as.zoo(USDBZD), as.zoo(USDCRC),
+                 as.zoo(USDGTQ), as.zoo(USDHNL), as.zoo(USDNIO), as.zoo(USDARS), as.zoo(USDBOB),
+                 as.zoo(USDCLP), as.zoo(USDCOP), as.zoo(USDPYG), as.zoo(USDPEN),
+                 as.zoo(USDUYU), all = FALSE)
+
+myColnames_AMERIKA_adj <- c("CAD","BSD","DOP","HTG","TTD","BZD","CRC",
+                        "GTQ","HNL","NIO","ARS","BOB","CLP","COP","PYG","PEN","UYU")
+
+colnames(AMERIKA_adj) <- myColnames_AMERIKA_adj
+mktPrices_AMERIKA_adj <- as.xts(AMERIKA_adj)
+# обозвали наш датасет
+
+mktRtns_AMERIKA_adj <- diff(log(mktPrices_AMERIKA_adj), lag = 1) # посчитали доходность валют
+mktRtns_AMERIKA_adj <- mktRtns_AMERIKA_adj[-1, ] 
+tail(mktRtns_AMERIKA_adj)
+
+valut_AMERIKA_adj <- round(cor(mktRtns_AMERIKA_adj) * 100)
+SIGN_MERIKA_adj <- rcorr(mktRtns_AMERIKA_adj ,type=c("pearson","spearman")) # 
+
+corrgram(valut_AMERIKA_adj, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for AMERIKA")
+
+corrgram(valut_AMERIKA_adj, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for AMERIKA")
+
+#Australia and Oceania
+USDAUD.Q <- Quandl("CURRFX/USDAUD", start_date = startDate, end_date = endDate, type = "xts") 
+USDAUD <- USDAUD.Q[,"Rate"]
+USDFJD.Q <- Quandl("CURRFX/USDFJD", start_date = startDate, end_date = endDate, type = "xts") 
+USDFJD <- USDFJD.Q[,"Rate"]
+USDNZD.Q <- Quandl("CURRFX/USDNZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDNZD <- USDNZD.Q[,"Rate"]
+USDPGK.Q <- Quandl("CURRFX/USDPGK", start_date = startDate, end_date = endDate, type = "xts") 
+USDPGK <- USDPGK.Q[,"Rate"]
+USDWST.Q <- Quandl("CURRFX/USDWST", start_date = startDate, end_date = endDate, type = "xts") 
+USDWST <- USDWST.Q[,"Rate"]
+USDSBD.Q <- Quandl("CURRFX/USDSBD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSBD <- USDSBD.Q[,"Rate"]
+USDTOP.Q <- Quandl("CURRFX/USDTOP", start_date = startDate, end_date = endDate, type = "xts") 
+USDTOP <- USDTOP.Q[,"Rate"]
+USDVUV.Q <- Quandl("CURRFX/USDVUV", start_date = startDate, end_date = endDate, type = "xts") 
+USDVUV <- USDVUV.Q[,"Rate"]
+
+Oceania <- merge(as.zoo(USDAUD),as.zoo(USDFJD), as.zoo(USDNZD), as.zoo(USDPGK), as.zoo(USDWST),    
+                 as.zoo(USDSBD), as.zoo(USDTOP), as.zoo(USDVUV), all = FALSE)
+
+myColnames_Oceania <- c("AUD","FJD","NZD","PGK", "WST", "SBD", "TOP", "VUV")
+
+colnames(Oceania) <- myColnames_Oceania
+mktPrices_Oceania <- as.xts(Oceania)
+# обозвали наш датасет
+
+mktRtns_Oceania <- diff(log(mktPrices_Oceania), lag = 1) # посчитали доходность валют
+mktRtns_Oceania <- mktRtns_Oceania[-1,-5]  # убрали верхнюю строку потому что она нулевая
+mktRtns_Oceania <- mktRtns_Oceania[,-5]
+
+head(mktRtns_Oceania)
+  
+valut_Oceania <- round(cor(mktRtns_Oceania) * 100)
+
+SIGN_Oceania <- rcorr(mktRtns_Oceania ,type=c("pearson","spearman")) # 
+# В целом все приглядно но надо убрать PGK
+
+Oceania_adj <- merge(as.zoo(USDAUD),as.zoo(USDFJD), as.zoo(USDNZD), as.zoo(USDWST),    
+                 as.zoo(USDSBD), as.zoo(USDTOP), as.zoo(USDVUV), all = FALSE)
+
+myColnames_Oceania_adj <- c("AUD","FJD","NZD","WST", "SBD", "TOP", "VUV")
+
+colnames(Oceania_adj) <- myColnames_Oceania_adj
+mktPrices_Oceania_adj <- as.xts(Oceania_adj)
+# обозвали наш датасет
+
+mktRtns_Oceania_adj <- diff(log(mktPrices_Oceania_adj), lag = 1) # посчитали доходность валют
+mktRtns_Oceania_adj <- mktRtns_Oceania_adj[-1,-5]  # убрали верхнюю строку потому что она нулевая
+mktRtns_Oceania_adj <- mktRtns_Oceania_adj[,-5]
+
+head(mktRtns_Oceania_adj)
+
+valut_Oceania_adj <- round(cor(mktRtns_Oceania_adj) * 100)
+
+SIGN_Oceania_adj <- rcorr(mktRtns_Oceania_adj,type=c("pearson","spearman")) # 
+
+corrgram(valut_Oceania_adj, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for Oceania")
+
+corrgram(valut_Oceania_adj, order = "PCA", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for Oceania")
+
+# Анализируем мир
+
+
+mktRtns_world <- cbind(mktRtns, mktRtns_EE, mktRtns_USSR, mktRtns_East_Asia, mktRtns_South_Asia, mktRtns_MENA,
+                       mktRtns_AMERIKA, mktRtns_Oceania, mktRtns_AFRIKA)
+tail(mktRtns_world)
+
+mktRtns_world <- mktRtns_world[,-35]
+mktRtns_world <- mktRtns_world[,-45]
+mktRtns_world <- mktRtns_world[,-47]
+mktRtns_world <- mktRtns_world[,-48]
+mktRtns_world <- mktRtns_world[,-49]
+mktRtns_world <- mktRtns_world[,-51]
+mktRtns_world <- mktRtns_world[,-53]
+mktRtns_world <- mktRtns_world[,-57]
+mktRtns_world <- mktRtns_world[,-67]
+mktRtns_world <- mktRtns_world[,-79]
+mktRtns_world <- mktRtns_world[,-79]
+mktRtns_world <- mktRtns_world[,-89]
+mktRtns_world <- mktRtns_world[,-90]
+mktRtns_world <- mktRtns_world[,-96]
+mktRtns_world <- mktRtns_world[,-97]
+mktRtns_world <- mktRtns_world[,-113]
+
+summary(mktRtns_world)
+summary(data)
+
+data <- mktRtns_world[1053:1390,]
+
+head(data)
+tail(data)
+
+valut_world <- round(cor(data) * 100)
+
+corrgram(valut_world, order = "OLO", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for World")
+
+corrgram(valut_world, order = "OLO", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for World")
+
+SIGN_world <- rcorr(mktRtns_world,type=c("pearson","spearman")) # 
+
+# Посчитаем корелограмм для валют чья корреляция значима
+
+mktRtns_world_adj <- cbind(mktRtns_adj, mktRtns_EE,mktRtns_USSR_adj, mktRtns_Asia_adj,
+                           mktRtns_MENA_adj, mktRtns_AMERIKA_adj, mktRtns_Oceania_adj)
+
+tail(mktRtns_world_adj)
+head(mktRtns_world_adj)
+
+mktRtns_world_adj <- mktRtns_world_adj[,-39]
+mktRtns_world_adj <- mktRtns_world_adj[,-40]
+mktRtns_world_adj <- mktRtns_world_adj[,-41]
+mktRtns_world_adj <- mktRtns_world_adj[,-41]
+mktRtns_world_adj <- mktRtns_world_adj[,-41]
+mktRtns_world_adj <- mktRtns_world_adj[,-43]
+mktRtns_world_adj <- mktRtns_world_adj[,-44]
+mktRtns_world_adj <- mktRtns_world_adj[,-56]
+mktRtns_world_adj <- mktRtns_world_adj[,-72]
+mktRtns_world_adj <- mktRtns_world_adj[,-73]
+
+summary(mktRtns_world_adj)
+
+valut_world_adj <- round(cor(mktRtns_world_adj) * 100)
+SIGN_world_adj <- rcorr(mktRtns_world_adj,type=c("pearson","spearman")) # 
+
+
+corrgram(valut_world_adj, order = "OLO", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "spearman", main = "Spearman correlation for World")
+
+corrgram(valut_world_adj, order = "OLO", lower.panel=panel.shade, upper.panel=NULL, gap=0.2,
+         abs = TRUE, cor.method = "pearson",  main = "Pearson correlation for World")
+
+
+cor.for.PCA_WORLD <- cor(mktRtns_world_adj) # коррреляция специально для Главных компонент 
+WORLD.PCA <- prcomp(cor.for.PCA_WORLD, scale = TRUE) # Сами главные компоненты
+plot(WORLD.PCA) # график ошибки от числа компонент 
+summary(WORLD.PCA)
+biplot(WORLD.PCA)
+
+PCA1 <- WORLD.PCA$rotation[,1]
+PCA2 <- WORLD.PCA$rotation[,2]
+PCA3 <- WORLD.PCA$rotation[,3]
+     
+library(rgl)
+plot3d(PCA1,PCA2,PCA3,lwd = 10)
+
+library(Rcmdr)
+scatter3d(PCA1,PCA2,PCA3)
+
+colnames(mktRtns_world_adj)
+
+
+
+
