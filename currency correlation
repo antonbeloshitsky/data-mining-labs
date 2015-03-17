@@ -1,0 +1,410 @@
+require(Quandl)
+require(xts)
+require(gplots)
+require(quantmod)
+require(rattle)
+require(rpart)
+require(rpart.plot)
+require(corrgram)
+require(ellipse)
+require(FactoMineR)
+require(Hmisc)
+require(car)
+require(PerformanceAnalytics)
+require(ggplot2)
+require(corrplot)
+require(MSBVAR)
+require(FinTS)
+require(ghyp)
+
+Quandl.auth("tbWQLVYq4t4VyifpXR54") # Это мой тулит. с его помощью я могу выкачивать любые данные с Квандла 
+
+startDate = as.Date("2009-05-05") # исследуем данные за прошлый календарный год
+endDate = as.Date("2014-05-05") 
+
+USDALL.Q <- Quandl("CURRFX/USDALL", start_date = startDate, end_date = endDate, type = "xts") 
+USDALL <- USDALL.Q[,"Rate"]
+USDBAM.Q <- Quandl("CURRFX/USDBAM", start_date = startDate, end_date = endDate, type = "xts") 
+USDBAM <- USDBAM.Q[,"Rate"]
+USDBGN.Q <- Quandl("CURRFX/USDBGN", start_date = startDate, end_date = endDate, type = "xts") 
+USDBGN <- USDBGN.Q[,"Rate"]
+USDHRK.Q <- Quandl("CURRFX/USDHRK", start_date = startDate, end_date = endDate, type = "xts")
+USDHRK <- USDHRK.Q[,"Rate"]
+USDCZK.Q <- Quandl("CURRFX/USDCZK", start_date = startDate, end_date = endDate, type = "xts")
+USDCZK <- USDCZK.Q[,"Rate"]
+USDMKD.Q <- Quandl("CURRFX/USDMKD", start_date = startDate, end_date = endDate, type = "xts")
+USDMKD <- USDMKD.Q[,"Rate"]
+USDPLN.Q <- Quandl("CURRFX/USDPLN", start_date = startDate, end_date = endDate, type = "xts") 
+USDPLN <- USDPLN.Q[,"Rate"]
+USDRSD.Q <- Quandl("CURRFX/USDRSD", start_date = startDate, end_date = endDate, type = "xts") 
+USDRSD <- USDRSD.Q[,"Rate"]
+USDRON.Q <- Quandl("CURRFX/USDRON", start_date = startDate, end_date = endDate, type = "xts") 
+USDRON <- USDRON.Q[,"Rate"]
+#Former Soviet Republics
+USDAMD.Q <- Quandl("CURRFX/USDAMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDAMD <- USDAMD.Q[,"Rate"] 
+USDAZN.Q <- Quandl("CURRFX/USDAZN", start_date = startDate, end_date = endDate, type = "xts") 
+USDAZN <- USDAZN.Q[,"Rate"]
+USDBYR.Q <- Quandl("CURRFX/USDBYR", start_date = startDate, end_date = endDate, type = "xts") 
+USDBYR <- USDBYR.Q[,"Rate"]
+USDGEL.Q <- Quandl("CURRFX/USDGEL", start_date = startDate, end_date = endDate, type = "xts") 
+USDGEL <- USDGEL.Q[,"Rate"]
+USDKZT.Q <- Quandl("CURRFX/USDKZT", start_date = startDate, end_date = endDate, type = "xts") 
+USDKZT <- USDKZT.Q[,"Rate"]
+USDKGS.Q <- Quandl("CURRFX/USDKGS", start_date = startDate, end_date = endDate, type = "xts") 
+USDKGS <- USDKGS.Q[,"Rate"]
+USDLVL.Q <- Quandl("CURRFX/USDLVL", start_date = startDate, end_date = endDate, type = "xts")
+USDLVL <- USDLVL.Q[,"Rate"]
+USDLTL.Q <- Quandl("CURRFX/USDLTL", start_date = startDate, end_date = endDate, type = "xts") 
+USDLTL <- USDLTL.Q[,"Rate"]
+USDMDL.Q <- Quandl("CURRFX/USDMDL", start_date = startDate, end_date = endDate, type = "xts") 
+USDMDL <- USDMDL.Q[,"Rate"]
+USDTJS.Q <- Quandl("CURRFX/USDTJS", start_date = startDate, end_date = endDate, type = "xts")
+USDTJS <- USDTJS.Q[,"Rate"]
+USDUAH.Q <- Quandl("CURRFX/USDUAH", start_date = startDate, end_date = endDate, type = "xts") 
+USDUAH <- USDUAH.Q[,"Rate"]
+USDRUB.Q <- Quandl("CURRFX/USDRUB", start_date = startDate, end_date = endDate, type = "xts") 
+USDRUB <- USDRUB.Q[,"Rate"] 
+#Asia
+USDBND.Q <- Quandl("CURRFX/USDBND", start_date = startDate, end_date = endDate, type = "xts") 
+USDBND <- USDBND.Q[,"Rate"]
+USDKHR.Q <- Quandl("CURRFX/USDKHR", start_date = startDate, end_date = endDate, type = "xts")  
+USDKHR <- USDKHR.Q[,"Rate"]
+USDCNY.Q <- Quandl("CURRFX/USDCNY", start_date = startDate, end_date = endDate, type = "xts")
+USDCNY <- USDCNY.Q[,"Rate"]
+USDHKD.Q <- Quandl("CURRFX/USDHKD", start_date = startDate, end_date = endDate, type = "xts") 
+USDHKD <- USDHKD.Q[,"Rate"]
+USDIDR.Q <- Quandl("CURRFX/USDIDR", start_date = startDate, end_date = endDate, type = "xts")  
+USDIDR <- USDIDR.Q[,"Rate"]
+USDLAK.Q <- Quandl("CURRFX/USDLAK", start_date = startDate, end_date = endDate, type = "xts") 
+USDLAK <- USDLAK.Q[,"Rate"]
+USDMYR.Q <- Quandl("CURRFX/USDMYR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMYR <- USDMYR.Q[,"Rate"]
+USDMNT.Q <- Quandl("CURRFX/USDMNT", start_date = startDate, end_date = endDate, type = "xts") 
+USDMNT <- USDMNT.Q[,"Rate"]
+USDMMK.Q <- Quandl("CURRFX/USDMMK", start_date = startDate, end_date = endDate, type = "xts") 
+USDMMK <- USDMMK.Q[,"Rate"]
+USDPHP.Q <- Quandl("CURRFX/USDPHP", start_date = startDate, end_date = endDate, type = "xts") 
+USDPHP <- USDPHP.Q[,"Rate"]
+USDSGD.Q <- Quandl("CURRFX/USDSGD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSGD <- USDSGD.Q[,"Rate"]
+USDKRW.Q <- Quandl("CURRFX/USDKRW", start_date = startDate, end_date = endDate, type = "xts") 
+USDKRW <- USDKRW.Q[,"Rate"]
+USDTHB.Q <- Quandl("CURRFX/USDTHB", start_date = startDate, end_date = endDate, type = "xts") 
+USDTHB <- USDTHB.Q[,"Rate"]
+USDVND.Q <- Quandl("CURRFX/USDVND", start_date = startDate, end_date = endDate, type = "xts") 
+USDVND <- USDVND.Q[,"Rate"]
+USDAFN.Q <- Quandl("CURRFX/USDAFN", start_date = startDate, end_date = endDate, type = "xts") 
+USDAFN <- USDAFN.Q[,"Rate"] 
+USDBDT.Q <- Quandl("CURRFX/USDBDT", start_date = startDate, end_date = endDate, type = "xts") 
+USDBDT <- USDBDT.Q[,"Rate"]
+USDBTN.Q <- Quandl("CURRFX/USDBTN", start_date = startDate, end_date = endDate, type = "xts") 
+USDBTN <- USDBTN.Q[,"Rate"]
+USDINR.Q <- Quandl("CURRFX/USDINR", start_date = startDate, end_date = endDate, type = "xts") 
+USDINR <- USDINR.Q[,"Rate"]
+USDLKR.Q <- Quandl("CURRFX/USDLKR", start_date = startDate, end_date = endDate, type = "xts") 
+USDLKR <- USDLKR.Q[,"Rate"]
+USDMVR.Q <- Quandl("CURRFX/USDMVR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMVR <- USDMVR.Q[,"Rate"]
+USDNPR.Q <- Quandl("CURRFX/USDNPR", start_date = startDate, end_date = endDate, type = "xts") 
+USDNPR <- USDNPR.Q[,"Rate"]
+USDPKR.Q <- Quandl("CURRFX/USDPKR", start_date = startDate, end_date = endDate, type = "xts") 
+USDPKR <- USDPKR.Q[,"Rate"]
+USDJPY.Q <- Quandl("CURRFX/USDJPY", start_date = startDate, end_date = endDate, type = "xts") 
+USDJPY <- USDJPY.Q[,"Rate"] 
+
+#Middle East and North Africa
+USDDZD.Q <- Quandl("CURRFX/USDDZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDDZD <-USDDZD.Q[,"Rate"]
+USDBHD.Q <- Quandl("CURRFX/USDBHD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBHD <-USDBHD.Q[,"Rate"]
+USDDJF.Q <- Quandl("CURRFX/USDDJF", start_date = startDate, end_date = endDate, type = "xts") 
+USDDJF <-USDDJF.Q[,"Rate"]
+USDEGP.Q <- Quandl("CURRFX/USDEGP", start_date = startDate, end_date = endDate, type = "xts") 
+USDEGP <-USDEGP.Q[,"Rate"]
+USDIRR.Q <- Quandl("CURRFX/USDIRR", start_date = startDate, end_date = endDate, type = "xts") 
+USDIRR <-USDIRR.Q[,"Rate"]
+USDIQD.Q <- Quandl("CURRFX/USDIQD", start_date = startDate, end_date = endDate, type = "xts") 
+USDIQD <-USDIQD.Q[,"Rate"]
+USDILS.Q <- Quandl("CURRFX/USDILS", start_date = startDate, end_date = endDate, type = "xts") 
+USDILS <-USDILS.Q[,"Rate"]
+USDJOD.Q <- Quandl("CURRFX/USDJOD", start_date = startDate, end_date = endDate, type = "xts") 
+USDJOD <-USDJOD.Q[,"Rate"]
+USDKWD.Q <- Quandl("CURRFX/USDKWD", start_date = startDate, end_date = endDate, type = "xts") 
+USDKWD <-USDKWD.Q[,"Rate"]
+USDLBP.Q <- Quandl("CURRFX/USDLBP", start_date = startDate, end_date = endDate, type = "xts") 
+USDLBP <-USDLBP.Q[,"Rate"]
+USDLYD.Q <- Quandl("CURRFX/USDLYD", start_date = startDate, end_date = endDate, type = "xts") 
+USDLYD <-USDLYD.Q[,"Rate"]
+USDMAD.Q <- Quandl("CURRFX/USDMAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDMAD <-USDMAD.Q[,"Rate"]
+USDOMR.Q <- Quandl("CURRFX/USDOMR", start_date = startDate, end_date = endDate, type = "xts") 
+USDOMR <-USDOMR.Q[,"Rate"]
+USDQAR.Q <- Quandl("CURRFX/USDQAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDQAR <-USDQAR.Q[,"Rate"]
+USDSAR.Q <- Quandl("CURRFX/USDSAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDSAR <-USDSAR.Q[,"Rate"]
+USDSYP.Q <- Quandl("CURRFX/USDSYP", start_date = startDate, end_date = endDate, type = "xts") 
+USDSYP <-USDSYP.Q[,"Rate"]
+USDTND.Q <- Quandl("CURRFX/USDTND", start_date = startDate, end_date = endDate, type = "xts") 
+USDTND <-USDTND.Q[,"Rate"]
+USDAED.Q <- Quandl("CURRFX/USDAED", start_date = startDate, end_date = endDate, type = "xts") 
+USDAED <-USDAED.Q[,"Rate"]
+USDYER.Q <- Quandl("CURRFX/USDYER", start_date = startDate, end_date = endDate, type = "xts") 
+USDYER <-USDYER.Q[,"Rate"]
+#Africa
+USDAOA.Q <- Quandl("CURRFX/USDAOA", start_date = startDate, end_date = endDate, type = "xts") 
+USDAOA <- USDAOA.Q[,"Rate"]
+USDBIF.Q <- Quandl("CURRFX/USDBIF", start_date = startDate, end_date = endDate, type = "xts") 
+USDBIF <- USDBIF.Q[,"Rate"]
+USDXOF.Q <- Quandl("CURRFX/USDXOF", start_date = startDate, end_date = endDate, type = "xts") 
+USDXOF <- USDXOF.Q[,"Rate"]
+USDBWP.Q <- Quandl("CURRFX/USDBWP", start_date = startDate, end_date = endDate, type = "xts") 
+USDBWP <- USDBWP.Q[,"Rate"]
+USDXAF.Q <- Quandl("CURRFX/USDXAF", start_date = startDate, end_date = endDate, type = "xts") 
+USDXAF <- USDXAF.Q[,"Rate"]
+USDCDF.Q <- Quandl("CURRFX/USDCDF", start_date = startDate, end_date = endDate, type = "xts") 
+USDCDF <- USDCDF.Q[,"Rate"] 
+USDKMF.Q <- Quandl("CURRFX/USDKMF", start_date = startDate, end_date = endDate, type = "xts") 
+USDKMF <- USDKMF.Q[,"Rate"]
+USDCVE.Q <- Quandl("CURRFX/USDCVE", start_date = startDate, end_date = endDate, type = "xts") 
+USDCVE <- USDCVE.Q[,"Rate"]
+USDETB.Q <- Quandl("CURRFX/USDETB", start_date = startDate, end_date = endDate, type = "xts") 
+USDETB <- USDETB.Q[,"Rate"]
+USDGHS.Q <- Quandl("CURRFX/USDGHS", start_date = startDate, end_date = endDate, type = "xts") 
+USDGHS <- USDGHS.Q[,"Rate"]
+USDGNF.Q <- Quandl("CURRFX/USDGNF", start_date = startDate, end_date = endDate, type = "xts") 
+USDGNF <- USDGNF.Q[,"Rate"]
+USDGMD.Q <- Quandl("CURRFX/USDGMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDGMD <- USDGMD.Q[,"Rate"]
+USDKES.Q <- Quandl("CURRFX/USDKES", start_date = startDate, end_date = endDate, type = "xts") 
+USDKES <- USDKES.Q[,"Rate"]
+USDLRD.Q <- Quandl("CURRFX/USDLRD", start_date = startDate, end_date = endDate, type = "xts") 
+USDLRD <- USDLRD.Q[,"Rate"]
+USDLSL.Q <- Quandl("CURRFX/USDLSL", start_date = startDate, end_date = endDate, type = "xts") 
+USDLSL <- USDLSL.Q[,"Rate"]
+USDMGA.Q <- Quandl("CURRFX/USDMGA", start_date = startDate, end_date = endDate, type = "xts") 
+USDMGA <- USDMGA.Q[,"Rate"]
+USDMZN.Q <- Quandl("CURRFX/USDMZN", start_date = startDate, end_date = endDate, type = "xts") 
+USDMZN <- USDMZN.Q[,"Rate"]
+USDMRO.Q <- Quandl("CURRFX/USDMRO", start_date = startDate, end_date = endDate, type = "xts") 
+USDMRO <- USDMRO.Q[,"Rate"]
+USDMUR.Q <- Quandl("CURRFX/USDMUR", start_date = startDate, end_date = endDate, type = "xts") 
+USDMUR <- USDMUR.Q[,"Rate"]
+USDMWK.Q <- Quandl("CURRFX/USDMWK", start_date = startDate, end_date = endDate, type = "xts") 
+USDMWK <- USDMWK.Q[,"Rate"]
+USDNAD.Q <- Quandl("CURRFX/USDNAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDNAD <- USDNAD.Q[,"Rate"]
+USDNGN.Q <- Quandl("CURRFX/USDNGN", start_date = startDate, end_date = endDate, type = "xts") 
+USDNGN <- USDNGN.Q[,"Rate"]
+USDRWF.Q <- Quandl("CURRFX/USDRWF", start_date = startDate, end_date = endDate, type = "xts") 
+USDRWF <- USDRWF.Q[,"Rate"]
+USDSDG.Q <- Quandl("CURRFX/USDSDG", start_date = startDate, end_date = endDate, type = "xts") 
+USDSDG <- USDSDG.Q[,"Rate"]
+USDSLL.Q <- Quandl("CURRFX/USDSLL", start_date = startDate, end_date = endDate, type = "xts") 
+USDSLL <- USDSLL.Q[,"Rate"]
+USDSOS.Q <- Quandl("CURRFX/USDSOS", start_date = startDate, end_date = endDate, type = "xts") 
+USDSOS <- USDSOS.Q[,"Rate"]
+USDSTD.Q <- Quandl("CURRFX/USDSTD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSTD <- USDSTD.Q[,"Rate"]
+USDSZL.Q <- Quandl("CURRFX/USDSZL", start_date = startDate, end_date = endDate, type = "xts") 
+USDSZL <- USDSZL.Q[,"Rate"]
+USDSCR.Q <- Quandl("CURRFX/USDSCR", start_date = startDate, end_date = endDate, type = "xts") 
+USDSCR <- USDSCR.Q[,"Rate"]
+USDTZS.Q <- Quandl("CURRFX/USDTZS", start_date = startDate, end_date = endDate, type = "xts") 
+USDTZS <- USDTZS.Q[,"Rate"]
+USDUGX.Q <- Quandl("CURRFX/USDUGX", start_date = startDate, end_date = endDate, type = "xts") 
+USDUGX <- USDUGX.Q[,"Rate"]
+USDZAR.Q <- Quandl("CURRFX/USDZAR", start_date = startDate, end_date = endDate, type = "xts") 
+USDZAR <- USDZAR.Q[,"Rate"]
+#America
+USDCAD.Q <- Quandl("CURRFX/USDCAD", start_date = startDate, end_date = endDate, type = "xts") 
+USDCAD <- USDCAD.Q[,"Rate"]
+USDMXN.Q <- Quandl("CURRFX/USDMXN", start_date = startDate, end_date = endDate, type = "xts") 
+USDMXN <- USDMXN.Q[,"Rate"]
+USDXCD.Q <- Quandl("CURRFX/USDXCD", start_date = startDate, end_date = endDate, type = "xts") 
+USDXCD <- USDXCD.Q[,"Rate"]
+USDBSD.Q <- Quandl("CURRFX/USDBSD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBSD <- USDBSD.Q[,"Rate"]
+USDBBD.Q <- Quandl("CURRFX/USDBBD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBBD <- USDBBD.Q[,"Rate"]
+USDCUP.Q <- Quandl("CURRFX/USDCUP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCUP <- USDCUP.Q[,"Rate"]
+USDDOP.Q <- Quandl("CURRFX/USDDOP", start_date = startDate, end_date = endDate, type = "xts") 
+USDDOP <- USDDOP.Q[,"Rate"]
+USDHTG.Q <- Quandl("CURRFX/USDHTG", start_date = startDate, end_date = endDate, type = "xts") 
+USDHTG <- USDHTG.Q[,"Rate"]
+USDJMD.Q <- Quandl("CURRFX/USDJMD", start_date = startDate, end_date = endDate, type = "xts") 
+USDJMD <- USDJMD.Q[,"Rate"]
+USDTTD.Q <- Quandl("CURRFX/USDTTD", start_date = startDate, end_date = endDate, type = "xts") 
+USDTTD <- USDTTD.Q[,"Rate"]
+USDBZD.Q <- Quandl("CURRFX/USDBZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBZD <- USDBZD.Q[,"Rate"]
+USDCRC.Q <- Quandl("CURRFX/USDCRC", start_date = startDate, end_date = endDate, type = "xts") 
+USDCRC <- USDCRC.Q[,"Rate"]
+USDGTQ.Q <- Quandl("CURRFX/USDGTQ", start_date = startDate, end_date = endDate, type = "xts") 
+USDGTQ <- USDGTQ.Q[,"Rate"]
+USDHNL.Q <- Quandl("CURRFX/USDHNL", start_date = startDate, end_date = endDate, type = "xts") 
+USDHNL <- USDHNL.Q[,"Rate"]
+USDNIO.Q <- Quandl("CURRFX/USDNIO", start_date = startDate, end_date = endDate, type = "xts") 
+USDNIO <- USDNIO.Q[,"Rate"]
+USDPAB.Q <- Quandl("CURRFX/USDPAB", start_date = startDate, end_date = endDate, type = "xts") 
+USDPAB <- USDPAB.Q[,"Rate"]
+USDARS.Q <- Quandl("CURRFX/USDARS", start_date = startDate, end_date = endDate, type = "xts") 
+USDARS <- USDARS.Q[,"Rate"]
+USDBOB.Q <- Quandl("CURRFX/USDBOB", start_date = startDate, end_date = endDate, type = "xts") 
+USDBOB <- USDBOB.Q[,"Rate"]
+USDBRL.Q <- Quandl("CURRFX/USDBRL", start_date = startDate, end_date = endDate, type = "xts") 
+USDBRL <- USDBRL.Q[,"Rate"]
+USDCLP.Q <- Quandl("CURRFX/USDCLP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCLP <- USDCLP.Q[,"Rate"]
+USDCOP.Q <- Quandl("CURRFX/USDCOP", start_date = startDate, end_date = endDate, type = "xts") 
+USDCOP <- USDCOP.Q[,"Rate"]
+USDGYD.Q <- Quandl("CURRFX/USDGYD", start_date = startDate, end_date = endDate, type = "xts") 
+USDGYD <- USDGYD.Q[,"Rate"]
+USDPYG.Q <- Quandl("CURRFX/USDPYG", start_date = startDate, end_date = endDate, type = "xts") 
+USDPYG <- USDPYG.Q[,"Rate"]
+USDPEN.Q <- Quandl("CURRFX/USDPEN", start_date = startDate, end_date = endDate, type = "xts") 
+USDPEN <- USDPEN.Q[,"Rate"]
+USDSRD.Q <- Quandl("CURRFX/USDSRD", start_date = startDate, end_date = endDate, type = "xts") 
+USDSRD <- USDSRD.Q[,"Rate"]
+USDUYU.Q <- Quandl("CURRFX/USDUYU", start_date = startDate, end_date = endDate, type = "xts") 
+USDUYU <- USDUYU.Q[,"Rate"]
+USDVEF.Q <- Quandl("CURRFX/USDVEF", start_date = startDate, end_date = endDate, type = "xts") 
+USDVEF <- USDVEF.Q[,"Rate"]
+#Australia and Oceania
+USDAUD.Q <- Quandl("CURRFX/USDAUD", start_date = startDate, end_date = endDate, type = "xts") 
+USDAUD <- USDAUD.Q[,"Rate"]
+USDFJD.Q <- Quandl("CURRFX/USDFJD", start_date = startDate, end_date = endDate, type = "xts") 
+USDFJD <- USDFJD.Q[,"Rate"]
+USDNZD.Q <- Quandl("CURRFX/USDNZD", start_date = startDate, end_date = endDate, type = "xts") 
+USDNZD <- USDNZD.Q[,"Rate"]
+USDPGK.Q <- Quandl("CURRFX/USDPGK", start_date = startDate, end_date = endDate, type = "xts") 
+USDPGK <- USDPGK.Q[,"Rate"]
+USDBSD.Q <- Quandl("CURRFX/USDBSD", start_date = startDate, end_date = endDate, type = "xts") 
+USDBSD <- USDBSD.Q[,"Rate"]
+
+WORLD <- merge(as.zoo(USDALL), as.zoo(USDBAM), as.zoo(USDBGN), as.zoo(USDHRK), 
+               as.zoo(USDCZK), as.zoo(USDMKD), as.zoo(USDPLN), as.zoo(USDRSD), 
+               as.zoo(USDRON), as.zoo(USDAMD), as.zoo(USDAZN), as.zoo(USDBYR), as.zoo(USDGEL), as.zoo(USDKZT), 
+               as.zoo(USDKGS), as.zoo(USDLVL), as.zoo(USDLTL), as.zoo(USDMDL), as.zoo(USDTJS), 
+               as.zoo(USDUAH), as.zoo(USDRUB), as.zoo(USDBND), as.zoo(USDKHR), as.zoo(USDCNY), 
+               as.zoo(USDHKD), as.zoo(USDIDR), as.zoo(USDLAK), as.zoo(USDMYR), as.zoo(USDMNT), as.zoo(USDMMK), 
+               as.zoo(USDPHP), as.zoo(USDSGD), as.zoo(USDKRW), as.zoo(USDTHB), as.zoo(USDVND), as.zoo(USDAFN),
+               as.zoo(USDBDT), as.zoo(USDBTN), as.zoo(USDINR), as.zoo(USDLKR), as.zoo(USDMVR), as.zoo(USDNPR), as.zoo(USDPKR), as.zoo(USDJPY), as.zoo(USDDZD), as.zoo(USDBHD), as.zoo(USDDJF), as.zoo(USDEGP), as.zoo(USDIRR), 
+               as.zoo(USDIQD), as.zoo(USDILS), as.zoo(USDJOD), as.zoo(USDKWD), as.zoo(USDLBP),         
+               as.zoo(USDLYD), as.zoo(USDMAD), as.zoo(USDOMR), as.zoo(USDQAR), as.zoo(USDSAR), 
+               as.zoo(USDSYP), as.zoo(USDTND), as.zoo(USDAED), as.zoo(USDYER), as.zoo(USDBIF), as.zoo(USDXOF), as.zoo(USDBWP), as.zoo(USDXAF), as.zoo(USDCDF), 
+               as.zoo(USDKMF), as.zoo(USDCVE), as.zoo(USDETB), as.zoo(USDGHS), as.zoo(USDGNF), as.zoo(USDGMD),
+               as.zoo(USDKES), as.zoo(USDLSL), as.zoo(USDMGA), as.zoo(USDMZN), as.zoo(USDMRO), 
+               as.zoo(USDMUR), as.zoo(USDMWK), as.zoo(USDNAD), as.zoo(USDNGN), as.zoo(USDRWF), as.zoo(USDSDG), 
+               as.zoo(USDSLL), as.zoo(USDSOS), as.zoo(USDSTD), as.zoo(USDSZL), as.zoo(USDSCR), as.zoo(USDTZS),
+               as.zoo(USDZAR), as.zoo(USDCAD), as.zoo(USDMXN),  
+               as.zoo(USDDOP), as.zoo(USDHTG), as.zoo(USDJMD), as.zoo(USDBZD), as.zoo(USDCRC),
+               as.zoo(USDGTQ), as.zoo(USDHNL), as.zoo(USDNIO), as.zoo(USDARS), as.zoo(USDBOB),
+               as.zoo(USDBRL), as.zoo(USDCLP), as.zoo(USDCOP), as.zoo(USDPYG), as.zoo(USDPEN),
+               as.zoo(USDUYU), as.zoo(USDAUD), as.zoo(USDFJD), as.zoo(USDNZD), as.zoo(USDPGK), as.zoo(USDBSD),     
+                all = FALSE)
+
+myColnames <- c("ALL", "BAM", "BGN", "HRK", "CZK", "MKD", "PLN", "RSD", "RON","AMD", "AZN", "BYR", "GEL", "KZT", "KGS", 
+                "LVL", "LTL", "MDL", "TJS", "UAH", "RUB", "BND","KHR", "CNY", "HKD","IDR","LAK","MYR","MNT","MMK","PHP","SGD","KRW","THB",
+                "VND", "AFN","BDT","BTN","INR","LKR","MVR","NPR","PKR","JPY","DZD", "BHD", "DJF", "EGP", "IRR", "IQD", "ILS", "JOD",
+                "KWD", "LBP", "LYD", "MAD", "OMR", "QAR", "SAR", "SYP", "TND", "AED", "YER","BIF","XOF","BWP","XAF","CDF","KMF","CVE","ETB","GHS", "GNF","GMD","KES",
+                "LSL","MGA","MZN","MRO","MUR","MWK","NAD","NGN","RWF","SDG","SLL","SOS","STD","SZL","SCR",
+                "TZS","ZAR","CAD","MXN","DOP","HTG","JMD","BZD","CRC",
+                "GTQ","HNL","NIO","ARS","BOB","BRL","CLP","COP","PYG","PEN","UYU","AUD","FJD","NZD","PGK", "BSD")
+                
+
+colnames(WORLD) <- myColnames
+WORLD<-as.xts(WORLD)
+WORLD <- na.omit(WORLD)
+           
+WORLD<- diff(log(WORLD), lag=1)               
+WORLD<-WORLD[-1,]
+
+summary(WORLD)
+str(WORLD) 
+WORLD<- as.zoo(WORLD)
+WORLD<-as.matrix(WORLD)
+  
+W<-cor(WORLD, method="pearson")
+
+cor.matrix <- round(cor(WORLD) * 100)
+
+corrgram(cor.matrix, order = "PCA", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE,  cor.method="pearson", main = "Pearson correlation for Whole world currencies")
+
+
+corrgram(cor.matrix, order = "OLO", lower.panel=panel.shade,upper.panel=NULL, gap=0.2,
+         abs = TRUE,  cor.method="pearson", main = "Pearson correlation for Whole world currencies")
+
+cor.mtest <- function(mat, conf.level = 0.95) {
+  mat <- as.matrix(mat)
+  n <- ncol(mat)
+  p.mat <- lowCI.mat <- uppCI.mat <- matrix(NA, n, n)
+  diag(p.mat) <- 0
+  diag(lowCI.mat) <- diag(uppCI.mat) <- 1
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j], conf.level = conf.level)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+      lowCI.mat[i, j] <- lowCI.mat[j, i] <- tmp$conf.int[1]
+      uppCI.mat[i, j] <- uppCI.mat[j, i] <- tmp$conf.int[2]
+    }
+  }
+  return(list(p.mat, lowCI.mat, uppCI.mat))
+}
+col3 <- colorRampPalette(c("red", "white", "blue"))
+res1 <- cor.mtest(WORLD, 0.99)
+corrplot(W, p.mat = res1[[1]], method = "color", type = "lower", 
+         sig.level = 0.01, order = "hclust",tl.cex=0.3, insig = "blank", tl.pos = "d", col = col3(5),main = "Pearson correlation for World")
+
+PCA.W <- prcomp(W,scale = TRUE)
+plot(PCA.W)
+summary(PCA.W)
+biplot(PCA.W)
+PCA.W
+library("ape")
+require("stats")
+
+d <-dist(W)
+M<-mst(d)
+PC <- prcomp(W)
+plot(M, x1=PCA.W$rotation[, 1], x2=PCA.W$rotation[, 2])
+plot(M, graph = "nsca")
+plot(M)
+
+lay <- layout.reingold.tilford(graph, mode="all") 
+plot(MST, layout=lay)
+
+
+library("igraph")
+
+graph<-graph.adjacency(W.dist,mode="undirected",weighted=NULL,diag=FALSE)
+V(graph)$A
+
+W.dist<- dist(W)
+
+MST<-minimum.spanning.tree(graph)
+lay <- layout.reingold.tilford(graph, mode="all") 
+plot(MST, layout=lay) 
+plot(MST) 
+
+
+MST <- simplify(as.undirected(MST))
+lay <- layout.reingold.tilford(MST, root=which.max(degree(MST))-1)
+plot(MST, layout=lay, vertex.size=1, asp=F, vertex.color=NA,vertex.frame.color=NA)
+
+
+
+rglplot(graph)
+
+set.seed(2) 
+g <- erdos.renyi.game(100, 300, type="gnm", directed=TRUE) 
+ 
+mst <- minimum.spanning.tree(g)
+mst <- simplify(as.undirected(mst))
+mst <- simplify(as.undirected(mst)) 
+lay <- layout.reingold.tilford(mst, root=which.max(degree(mst))-1)
+plot(mst, layout=lay, vertex.size=1, asp=F, vertex.color=NA,vertex.frame.color=NA)
+
